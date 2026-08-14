@@ -15,23 +15,24 @@ async function post(url,payload={},file=null){
   let options={method:'POST'};
   if(file){const f=new FormData();Object.entries(payload).forEach(([k,v])=>f.append(k,v));f.append('data',file,file.name||'meal.jpg');options.body=f;}
   else{options.headers={'Content-Type':'application/json'};options.body=JSON.stringify(payload)}
-  const r=await fetch(url,options);let data;try{data=await r.json()}catch(e){throw new Error('Nieprawidłowa odpowiedź serwera.')}if(!r.ok||data?.success===false)throw new Error(data?.error||data?.message||'Błąd serwera.');return data;
+  const r=await fetch(url,options);let data;try{data=await r.json()}catch(e){throw new Error('Nieprawidłowa odpowiedź serwera.')}if(!r.ok||data?.success===false)throw new Error(data?.message||data?.error||'Błąd serwera.');return data;
 }
 async function api(action,payload={},file=null){if(!state.token)throw new Error('Brak przypisania instalacji.');return post(API,{action,accessToken:state.token,...payload},file)}
+function rememberSession(accessToken,userId,displayName){state.token=accessToken;state.profile={userId,displayName};localStorage.setItem(TOKEN_KEY,state.token);localStorage.setItem(PROFILE_KEY,JSON.stringify(state.profile));}
 
 async function loadProfiles(){
   try{const d=await post(API,{action:'users_list'});const sel=$('profileSelect');sel.innerHTML='';(d.users||[]).forEach(u=>{const o=document.createElement('option');o.value=u.userId;o.textContent=u.displayName;sel.appendChild(o)});if(!(d.users||[]).length){const o=document.createElement('option');o.textContent='Brak użytkowników';o.disabled=true;sel.appendChild(o)}}catch(e){$('authError').textContent=e.message;show('authError')}
 }
 
 async function claimProfile(){
-  hide('authError');const userId=$('profileSelect').value;const pin=$('profilePin').value.trim();if(!userId||!pin){$('authError').textContent='Wybierz użytkownika i wpisz PIN.';show('authError');return}
-  loading(true,'Przypisuję instalację…');try{const d=await post(AUTH,{action:'claim_profile',userId,pin});state.token=d.accessToken;state.profile={userId:d.userId,displayName:$('profileSelect').selectedOptions[0]?.textContent||d.userId};localStorage.setItem(TOKEN_KEY,state.token);localStorage.setItem(PROFILE_KEY,JSON.stringify(state.profile));await enterApp()}catch(e){$('authError').textContent=e.message;show('authError')}finally{loading(false)}
+  hide('authError');const userId=$('profileSelect').value;const accessPin=$('profilePin').value.trim();if(!userId||!accessPin){$('authError').textContent='Wybierz użytkownika i wpisz PIN.';show('authError');return}
+  loading(true,'Przypisuję instalację…');try{const d=await post(AUTH,{userId,accessPin});rememberSession(d.accessToken,d.userId,$('profileSelect').selectedOptions[0]?.textContent||d.userId);await enterApp()}catch(e){$('authError').textContent=e.message;show('authError')}finally{loading(false)}
 }
 
 async function createUser(){
-  hide('authError');const displayName=$('newName').value.trim(),pin=$('newPin').value.trim();if(displayName.length<2){$('authError').textContent='Podaj imię lub nazwę użytkownika.';show('authError');return}if(!/^\d{4,8}$/.test(pin)){$('authError').textContent='PIN musi mieć 4–8 cyfr.';show('authError');return}
-  const payload={action:'user_create',displayName,pin,dailyCalorieTarget:$('newCalories').value,dailyProteinTarget:$('newProtein').value,dailyCarbsTarget:$('newCarbs').value,dailyFatTarget:$('newFat').value};
-  loading(true,'Tworzę profil…');try{const d=await post(AUTH,payload);state.token=d.accessToken;state.profile={userId:d.userId,displayName:d.displayName||displayName};localStorage.setItem(TOKEN_KEY,state.token);localStorage.setItem(PROFILE_KEY,JSON.stringify(state.profile));await enterApp()}catch(e){$('authError').textContent=e.message;show('authError')}finally{loading(false)}
+  hide('authError');const displayName=$('newName').value.trim(),accessPin=$('newPin').value.trim();if(displayName.length<2){$('authError').textContent='Podaj imię lub nazwę użytkownika.';show('authError');return}if(!/^\d{4,8}$/.test(accessPin)){$('authError').textContent='PIN musi mieć 4–8 cyfr.';show('authError');return}
+  const payload={action:'user_create',displayName,accessPin,dailyCalorieTarget:$('newCalories').value,dailyProteinTarget:$('newProtein').value,dailyCarbsTarget:$('newCarbs').value,dailyFatTarget:$('newFat').value};
+  loading(true,'Tworzę profil…');try{const created=await post(API,payload);const userId=created.user?.userId;if(!userId)throw new Error('Nie udało się utworzyć profilu.');const auth=await post(AUTH,{userId,accessPin});rememberSession(auth.accessToken,userId,created.user?.displayName||displayName);await enterApp()}catch(e){$('authError').textContent=e.message;show('authError')}finally{loading(false)}
 }
 
 function nav(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));const map={today:'viewToday',add:'viewAdd',favorites:'viewFavorites',history:'viewHistory',profile:'viewProfile'};$(map[name])?.classList.add('active');if(name==='today')loadDashboard();if(name==='favorites')loadFavorites();if(name==='history')loadHistory();if(name==='profile')loadSettings();window.scrollTo({top:0,behavior:'smooth'});}
@@ -68,7 +69,7 @@ async function init(){
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredPrompt=e;show('installBtn')});$('installBtn').onclick=async()=>{if(!state.deferredPrompt)return;state.deferredPrompt.prompt();await state.deferredPrompt.userChoice;state.deferredPrompt=null;hide('installBtn')};
   const online=()=>{navigator.onLine?hide('offline'):show('offline')};window.addEventListener('online',online);window.addEventListener('offline',online);online();
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  if(state.token){try{await enterApp();return}catch(e){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(PROFILE_KEY);state.token='';state.profile=null;toast('Sesja wygasła. Przypisz instalację ponownie.')}}
+  if(state.token){try{await api('settings_get');await enterApp();return}catch(e){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(PROFILE_KEY);state.token='';state.profile=null;toast('Sesja wygasła. Przypisz instalację ponownie.')}}
   show('authScreen');await loadProfiles();
 }
 document.addEventListener('DOMContentLoaded',init);
