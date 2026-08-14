@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Foto dieta">
+  <title>Foto dieta</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="offline" class="offline hidden">Brak połączenia z siecią</div>
+
+  <section id="authScreen" class="auth-screen hidden">
+    <div class="auth-card">
+      <div class="brand-mark">FD</div>
+      <h1>Foto dieta</h1>
+      <p class="muted">Pierwsze uruchomienie. Przypisz tę instalację do jednej osoby.</p>
+
+      <div id="existingProfiles" class="auth-panel">
+        <h2>Istniejący użytkownik</h2>
+        <label>Użytkownik
+          <select id="profileSelect"></select>
+        </label>
+        <label>PIN
+          <input id="profilePin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="4–8 cyfr">
+        </label>
+        <button id="claimProfileBtn" class="primary">Zaloguj tę instalację</button>
+      </div>
+
+      <div class="divider"><span>albo</span></div>
+
+      <details id="newUserDetails" class="auth-panel">
+        <summary>Utwórz nowego użytkownika</summary>
+        <div class="form-grid top-gap">
+          <label>Imię / nazwa<input id="newName" maxlength="60" placeholder="np. Monika"></label>
+          <label>PIN<input id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="4–8 cyfr"></label>
+          <label>Kalorie / dzień<input id="newCalories" type="number" min="0" max="10000" value="2000"></label>
+          <label>Białko g / dzień<input id="newProtein" type="number" min="0" max="1000" value="120"></label>
+          <label>Węglowodany g / dzień<input id="newCarbs" type="number" min="0" max="2000" value="220"></label>
+          <label>Tłuszcz g / dzień<input id="newFat" type="number" min="0" max="1000" value="70"></label>
+        </div>
+        <button id="createUserBtn" class="primary top-gap">Utwórz i przypisz instalację</button>
+      </details>
+      <p id="authError" class="error hidden"></p>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Foto dieta</div>
+        <h1 id="welcome">Dzisiaj</h1>
+      </div>
+      <button id="installBtn" class="ghost hidden">Zainstaluj</button>
+    </header>
+
+    <main>
+      <section id="viewToday" class="view active">
+        <div class="summary-card">
+          <div class="summary-head"><span id="todayDate"></span><span id="mealCount"></span></div>
+          <div class="kcal-main"><strong id="kcalConsumed">0</strong><span>/ <span id="kcalTarget">0</span> kcal</span></div>
+          <div class="progress"><div id="kcalBar"></div></div>
+          <div class="macro-grid">
+            <div><b id="proteinConsumed">0</b><span>Białko</span><small id="proteinTarget"></small></div>
+            <div><b id="carbsConsumed">0</b><span>Węglowodany</span><small id="carbsTarget"></small></div>
+            <div><b id="fatConsumed">0</b><span>Tłuszcz</span><small id="fatTarget"></small></div>
+          </div>
+        </div>
+        <div class="section-title"><h2>Posiłki</h2><button class="small" data-nav="add">+ Dodaj</button></div>
+        <div id="todayMeals" class="cards"></div>
+      </section>
+
+      <section id="viewAdd" class="view">
+        <h2>Dodaj posiłek</h2>
+        <div class="action-grid">
+          <label class="upload-tile">📷<strong>Zrób zdjęcie</strong><span>Aparat lub galeria</span><input id="photoInput" type="file" accept="image/*" capture="environment"></label>
+          <button id="showTextBtn" class="upload-tile">✍️<strong>Wpisz ręcznie</strong><span>Opis posiłku</span></button>
+        </div>
+        <div id="textPanel" class="panel hidden">
+          <label>Co zjadłeś?<textarea id="mealText" rows="4" placeholder="np. dwie kromki chleba z serem i pomidorem"></textarea></label>
+          <button id="analyzeTextBtn" class="primary">Analizuj opis</button>
+        </div>
+        <div id="analysisPanel" class="panel hidden">
+          <div class="section-title"><h3>Wynik analizy</h3><span id="analysisConfidence" class="pill"></span></div>
+          <label>Opis<input id="analysisDescription"></label>
+          <div id="analysisItems" class="analysis-items"></div>
+          <label>Kalorie do zapisu<input id="analysisCalories" type="number" min="0" max="20000"></label>
+          <div class="button-row"><button id="saveMealBtn" class="primary">Zapisz posiłek</button><button id="saveFavoriteBtn" class="secondary">Dodaj do ulubionych</button></div>
+        </div>
+      </section>
+
+      <section id="viewFavorites" class="view">
+        <h2>Ulubione</h2>
+        <div id="favoritesList" class="cards"></div>
+      </section>
+
+      <section id="viewHistory" class="view">
+        <h2>Historia</h2>
+        <div id="historyList" class="cards"></div>
+      </section>
+
+      <section id="viewProfile" class="view">
+        <h2>Profil</h2>
+        <div class="panel">
+          <div class="profile-lock"><span>🔒</span><div><strong id="profileName">Profil przypisany</strong><p>Ta instalacja jest trwale przypisana do tego profilu. W aplikacji nie ma przełączania użytkownika.</p></div></div>
+        </div>
+        <div class="panel">
+          <h3>Dzienne limity</h3>
+          <div class="form-grid">
+            <label>Kalorie<input id="setCalories" type="number" min="0" max="10000"></label>
+            <label>Białko g<input id="setProtein" type="number" min="0" max="1000"></label>
+            <label>Węglowodany g<input id="setCarbs" type="number" min="0" max="2000"></label>
+            <label>Tłuszcz g<input id="setFat" type="number" min="0" max="1000"></label>
+          </div>
+          <button id="saveSettingsBtn" class="primary top-gap">Zapisz limity</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-nav="today" class="active">◉<span>Dzisiaj</span></button>
+      <button data-nav="add">＋<span>Dodaj</span></button>
+      <button data-nav="favorites">★<span>Ulubione</span></button>
+      <button data-nav="history">▤<span>Historia</span></button>
+      <button data-nav="profile">●<span>Profil</span></button>
+    </nav>
+  </div>
+
+  <div id="loading" class="loading hidden"><div class="spinner"></div><strong id="loadingText">Przetwarzam…</strong></div>
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
