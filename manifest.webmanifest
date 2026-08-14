@@ -1,7 +1,7 @@
 {
-  "name": "Foto dieta",
-  "short_name": "Foto dieta",
-  "description": "Prywatna aplikacja do rejestrowania posiłków i makroskładników.",
+  "name": "AI Monitor żywienia",
+  "short_name": "AI Żywienie",
+  "description": "Aplikacja AI do rejestrowania posiłków, kalorii i makroskładników.",
   "id": "/dieta-v2-pwa/",
   "start_url": "/dieta-v2-pwa/",
   "scope": "/dieta-v2-pwa/",
