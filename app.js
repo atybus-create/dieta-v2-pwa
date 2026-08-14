@@ -10,6 +10,7 @@ const hide=id=>$(id)?.classList.add('hidden');
 const toast=msg=>{const el=$('toast');el.textContent=msg;show('toast');clearTimeout(toast.t);toast.t=setTimeout(()=>hide('toast'),2400)};
 const loading=(on,text='Przetwarzam…')=>{if(on){$('loadingText').textContent=text;show('loading')}else hide('loading')};
 const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const hideSplash=()=>hide('startSplash');
 
 async function post(url,payload={},file=null){
   let options={method:'POST'};
@@ -62,7 +63,7 @@ async function deleteDay(date){if(!confirm(`Usunąć cały dzień ${date}?`))ret
 async function loadSettings(){try{const d=await api('settings_get');$('setCalories').value=d.settings.dailyCalorieTarget;$('setProtein').value=d.settings.dailyProteinTarget;$('setCarbs').value=d.settings.dailyCarbsTarget;$('setFat').value=d.settings.dailyFatTarget;$('profileName').textContent=state.profile?.displayName||'Profil'}catch(e){toast(e.message)}}
 async function saveSettings(){loading(true,'Zapisuję limity…');try{await api('settings_update',{dailyCalorieTarget:$('setCalories').value,dailyProteinTarget:$('setProtein').value,dailyCarbsTarget:$('setCarbs').value,dailyFatTarget:$('setFat').value});toast('Limity zapisane');await loadSettings()}catch(e){toast(e.message)}finally{loading(false)}}
 
-async function enterApp(){hide('authScreen');show('app');$('profileName').textContent=state.profile?.displayName||'Profil';await loadDashboard();}
+async function enterApp(){hide('authScreen');show('app');hideSplash();$('profileName').textContent=state.profile?.displayName||'Profil';await loadDashboard();}
 async function init(){
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.nav)));
   $('claimProfileBtn').onclick=claimProfile;$('createUserBtn').onclick=createUser;$('showTextBtn').onclick=()=>show('textPanel');$('analyzeTextBtn').onclick=analyzeText;$('photoInput').onchange=e=>analyzePhoto(e.target.files?.[0]);$('saveMealBtn').onclick=saveMeal;$('saveFavoriteBtn').onclick=saveFavorite;$('saveSettingsBtn').onclick=saveSettings;
@@ -70,6 +71,6 @@ async function init(){
   const online=()=>{navigator.onLine?hide('offline'):show('offline')};window.addEventListener('online',online);window.addEventListener('offline',online);online();
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
   if(state.token){try{await api('settings_get');await enterApp();return}catch(e){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(PROFILE_KEY);state.token='';state.profile=null;toast('Sesja wygasła. Przypisz instalację ponownie.')}}
-  show('authScreen');await loadProfiles();
+  show('authScreen');hideSplash();await loadProfiles();
 }
 document.addEventListener('DOMContentLoaded',init);
