@@ -1,1 +1,1 @@
-logout-modal
+noop
