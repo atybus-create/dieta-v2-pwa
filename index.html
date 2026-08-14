@@ -8,12 +8,19 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI Monitor żywienia">
   <title>AI Monitor żywienia</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260814-4">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20260814-4">
+  <link rel="manifest" href="manifest.webmanifest?v=20260814-6">
+  <link rel="icon" href="icon.svg?v=20260814-6" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png?v=20260814-6">
+  <link rel="stylesheet" href="styles.css?v=20260814-6">
 </head>
 <body>
+  <div id="startSplash" class="start-splash" aria-live="polite">
+    <div class="start-splash-mark">AI</div>
+    <h1>AI Monitor żywienia</h1>
+    <p>Uruchamiam aplikację…</p>
+    <div class="start-splash-line"><span></span></div>
+  </div>
+
   <div id="offline" class="offline hidden">Brak połączenia z siecią</div>
 
   <section id="authScreen" class="auth-screen hidden">
@@ -168,6 +175,6 @@
       document.addEventListener('DOMContentLoaded',()=>{buttons().forEach(b=>b.addEventListener('click',installApp));refreshInstallButtons();});
     })();
   </script>
-  <script src="app.js?v=20260814-4" defer></script>
+  <script src="app.js?v=20260814-6" defer></script>
 </body>
 </html>
