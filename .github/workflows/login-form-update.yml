@@ -1,34 +1,11 @@
-name: One-off logout updater
+name: Disabled one-off logout updater
 
 on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: github.event.head_commit.message == 'Run logout patch'
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Apply patch
-        run: python patch-logout.py
-      - name: Validate
-        run: |
-          git diff --check
-          grep -F 'id="logoutBtn"' index.html
-          grep -F 'async function logout()' app.js
-          grep -F "'logout'" app.js
-          grep -F 'ai-monitor-zywienia-20260814-12' sw.js
-      - name: Commit changes
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html styles.css app.js sw.js
-          git commit -m 'Add secure logout to PWA'
-          git push
+      - run: echo disabled
