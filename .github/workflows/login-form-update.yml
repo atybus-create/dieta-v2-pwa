@@ -1,31 +1,11 @@
-name: One-off diet login form update
+name: Disabled one-off diet login updater
 
 on:
-  push:
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: github.event.head_commit.message == 'Run diet login frontend patch'
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Patch frontend
-        run: python3 patch-login.py
-      - name: Validate changes
-        run: |
-          git diff --check
-          grep -F 'ZALOGUJ SIĘ' index.html
-          grep -F 'id="profileLogin"' index.html
-          grep -F 'ai-monitor-zywienia-20260814-10' sw.js
-      - name: Commit frontend update
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html app.js sw.js
-          git commit -m 'Replace profile chooser with login and PIN form'
-          git push
+      - run: echo disabled
