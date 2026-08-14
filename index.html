@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Foto dieta">
   <title>Foto dieta</title>
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest.webmanifest?v=20260814-3">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260814-3">
 </head>
 <body>
   <div id="offline" class="offline hidden">Brak połączenia z siecią</div>
@@ -21,6 +21,9 @@
       <div class="brand-mark">FD</div>
       <h1>Foto dieta</h1>
       <p class="muted">Pierwsze uruchomienie. Przypisz tę instalację do jednej osoby.</p>
+
+      <button id="installFirstBtn" class="primary install-first" type="button">Zainstaluj aplikację</button>
+      <p id="installHint" class="muted install-hint">Możesz najpierw zainstalować aplikację, a profil przypisać już po uruchomieniu z ekranu głównego.</p>
 
       <div id="existingProfiles" class="auth-panel">
         <h2>Istniejący użytkownik</h2>
@@ -57,7 +60,7 @@
         <div class="eyebrow">Foto dieta</div>
         <h1 id="welcome">Dzisiaj</h1>
       </div>
-      <button id="installBtn" class="ghost hidden">Zainstaluj</button>
+      <button id="installBtn" class="ghost" type="button">Zainstaluj</button>
     </header>
 
     <main>
@@ -134,6 +137,37 @@
 
   <div id="loading" class="loading hidden"><div class="spinner"></div><strong id="loadingText">Przetwarzam…</strong></div>
   <div id="toast" class="toast hidden"></div>
-  <script src="app.js" defer></script>
+
+  <script>
+    (()=>{
+      let installPrompt=null;
+      const standalone=()=>window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+      const buttons=()=>[document.getElementById('installFirstBtn'),document.getElementById('installBtn')].filter(Boolean);
+      function refreshInstallButtons(){
+        if(standalone()) buttons().forEach(b=>b.classList.add('hidden'));
+        else buttons().forEach(b=>b.classList.remove('hidden'));
+      }
+      async function installApp(){
+        if(standalone()) return;
+        if(installPrompt){
+          installPrompt.prompt();
+          await installPrompt.userChoice;
+          installPrompt=null;
+          refreshInstallButtons();
+          return;
+        }
+        const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+        if(ios){
+          alert('Na iPhonie: stuknij Udostępnij w Safari, a następnie „Dodaj do ekranu początkowego”.');
+        }else{
+          alert('Jeśli przeglądarka nie pokazuje okna instalacji, otwórz jej menu i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.');
+        }
+      }
+      window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;refreshInstallButtons();});
+      window.addEventListener('appinstalled',refreshInstallButtons);
+      document.addEventListener('DOMContentLoaded',()=>{buttons().forEach(b=>b.addEventListener('click',installApp));refreshInstallButtons();});
+    })();
+  </script>
+  <script src="app.js?v=20260814-3" defer></script>
 </body>
 </html>
