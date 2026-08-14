@@ -499,19 +499,36 @@ function clearSession() {
 }
 
 
+function openLogoutModal() {
+
+  if (!state.token) {
+    return;
+  }
+
+  show('logoutModal');
+  document.body.classList.add('modal-open');
+
+  setTimeout(
+    () => $('logoutCancelBtn')?.focus(),
+    20
+  );
+}
+
+
+function closeLogoutModal() {
+
+  hide('logoutModal');
+  document.body.classList.remove('modal-open');
+}
+
+
 async function logout() {
 
   if (!state.token) {
     return;
   }
 
-  if (
-    !confirm(
-      'Wylogować się z aplikacji?'
-    )
-  ) {
-    return;
-  }
+  closeLogoutModal();
 
   loading(
     true,
@@ -2608,8 +2625,40 @@ async function init() {
 
   if ($('logoutBtn')) {
     $('logoutBtn').onclick =
+      openLogoutModal;
+  }
+
+  if ($('logoutCancelBtn')) {
+    $('logoutCancelBtn').onclick =
+      closeLogoutModal;
+  }
+
+  if ($('logoutConfirmBtn')) {
+    $('logoutConfirmBtn').onclick =
       logout;
   }
+
+  $('logoutModal')
+    ?.addEventListener(
+      'click',
+      event => {
+        if (event.target === $('logoutModal')) {
+          closeLogoutModal();
+        }
+      }
+    );
+
+  document.addEventListener(
+    'keydown',
+    event => {
+      if (
+        event.key === 'Escape' &&
+        !$('logoutModal')?.classList.contains('hidden')
+      ) {
+        closeLogoutModal();
+      }
+    }
+  );
 
 
   /* meal add */
@@ -2760,7 +2809,7 @@ async function init() {
 
     navigator.serviceWorker
       .register(
-        './sw.js?v=20260814-12'
+        './sw.js?v=20260814-13'
       )
       .catch(
         () => {}
