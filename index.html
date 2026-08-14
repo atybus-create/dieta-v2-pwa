@@ -3,178 +3,261 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#071014">
+  <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI Monitor żywienia">
   <title>AI Monitor żywienia</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260814-6">
-  <link rel="icon" href="icon.svg?v=20260814-6" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png?v=20260814-6">
-  <link rel="stylesheet" href="styles.css?v=20260814-6">
+  <style>
+    html,body{margin:0;min-height:100%;background:#071014;color:#edf7f6}
+    body{min-height:100vh;min-height:100dvh}
+    #startSplash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;align-content:center;gap:12px;padding:24px;background:radial-gradient(circle at 50% 38%,rgba(38,214,194,.14),transparent 34%),linear-gradient(180deg,#071014 0%,#091217 100%);color:#edf7f6;text-align:center}
+    #startSplash.hidden{display:none!important}
+    .start-splash-mark{width:92px;height:92px;border-radius:30px;display:grid;place-items:center;font:800 28px/1 system-ui,sans-serif;letter-spacing:-.04em;color:#081416;background:linear-gradient(135deg,#72f5df,#22c9d6);box-shadow:0 0 0 1px rgba(111,245,223,.25),0 0 42px rgba(34,201,214,.22),0 22px 60px rgba(0,0,0,.38)}
+    .start-splash-line{width:min(280px,72vw);height:4px;margin-top:12px;border-radius:999px;overflow:hidden;background:rgba(130,205,198,.12)}
+    .start-splash-line span{display:block;width:38%;height:100%;border-radius:inherit;background:linear-gradient(90deg,transparent,#55ead8,#26c7d5,transparent);filter:drop-shadow(0 0 8px rgba(38,199,213,.8));animation:criticalSplash 1.15s ease-in-out infinite}
+    @keyframes criticalSplash{0%{transform:translateX(-125%)}100%{transform:translateX(365%)}}
+  </style>
+  <link rel="manifest" href="manifest.webmanifest?v=20260814-7">
+  <link rel="icon" href="icon.svg?v=20260814-7" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png?v=20260814-7">
+  <link rel="stylesheet" href="styles.css?v=20260814-7">
 </head>
 <body>
-  <div id="startSplash" class="start-splash" aria-live="polite">
-    <div class="start-splash-mark">AI</div>
-    <h1>AI Monitor żywienia</h1>
-    <p>Uruchamiam aplikację…</p>
-    <div class="start-splash-line"><span></span></div>
+  <div id="startSplash" class="start-splash" aria-live="polite" aria-label="Uruchamianie aplikacji">
+    <div class="start-splash-mark" aria-hidden="true">AI</div>
+    <div class="start-splash-copy">
+      <h1>AI Monitor żywienia</h1>
+      <p>Uruchamiam aplikację…</p>
+    </div>
+    <div class="start-splash-line" aria-hidden="true"><span></span></div>
   </div>
 
-  <div id="offline" class="offline hidden">Brak połączenia z siecią</div>
+  <div id="offline" class="offline hidden" role="status">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5C7.7 5.8 16.3 5.8 21 9.5M6 13c3.3-2.4 8.7-2.4 12 0M9.5 16.5c1.4-.9 3.6-.9 5 0M12 20h.01"/></svg>
+    Brak połączenia z siecią
+  </div>
 
   <section id="authScreen" class="auth-screen hidden">
-    <div class="auth-card">
-      <div class="brand-mark">AI</div>
-      <h1>AI Monitor żywienia</h1>
-      <p class="muted">Pierwsze uruchomienie. Przypisz tę instalację do jednej osoby.</p>
-
-      <button id="installFirstBtn" class="primary install-first" type="button">Zainstaluj aplikację</button>
-      <p id="installHint" class="muted install-hint">Możesz najpierw zainstalować aplikację, a profil przypisać już po uruchomieniu z ekranu głównego.</p>
-
-      <div id="existingProfiles" class="auth-panel">
-        <h2>Istniejący użytkownik</h2>
-        <label>Użytkownik
-          <select id="profileSelect"></select>
-        </label>
-        <label>PIN
-          <input id="profilePin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="4–8 cyfr">
-        </label>
-        <button id="claimProfileBtn" class="primary">Zaloguj tę instalację</button>
+    <div class="auth-shell">
+      <div class="auth-intro">
+        <div class="eyebrow welcome-eyebrow">Witaj w aplikacji</div>
+        <div class="brand-mark brand-mark-xl" aria-hidden="true">AI</div>
+        <h1>AI Monitor żywienia</h1>
+        <p class="muted">Twój prywatny dziennik posiłków wspierany analizą AI.</p>
       </div>
 
-      <div class="divider"><span>albo</span></div>
+      <button id="installFirstBtn" class="install-card" type="button">
+        <span class="icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+        </span>
+        <span class="install-copy"><strong>Zainstaluj aplikację</strong><small>Dodaj AI Monitor do ekranu głównego telefonu</small></span>
+        <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <p id="installHint" class="muted install-hint">Instalacja jest opcjonalna. Profil możesz przypisać również w przeglądarce.</p>
 
-      <details id="newUserDetails" class="auth-panel">
-        <summary>Utwórz nowego użytkownika</summary>
-        <div class="form-grid top-gap">
-          <label>Imię / nazwa<input id="newName" maxlength="60" placeholder="np. Monika"></label>
-          <label>PIN<input id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="4–8 cyfr"></label>
-          <label>Kalorie / dzień<input id="newCalories" type="number" min="0" max="10000" value="2000"></label>
-          <label>Białko g / dzień<input id="newProtein" type="number" min="0" max="1000" value="120"></label>
-          <label>Węglowodany g / dzień<input id="newCarbs" type="number" min="0" max="2000" value="220"></label>
-          <label>Tłuszcz g / dzień<input id="newFat" type="number" min="0" max="1000" value="70"></label>
+      <div id="existingProfiles" class="auth-panel glass-card">
+        <div class="panel-kicker">Przypisanie instalacji</div>
+        <h2>Wybierz istniejącego użytkownika</h2>
+        <select id="profileSelect" class="visually-hidden" aria-hidden="true" tabindex="-1"></select>
+        <div id="profileCards" class="profile-choices" role="radiogroup" aria-label="Użytkownicy"></div>
+
+        <label class="field-label" for="profilePin">PIN</label>
+        <div class="pin-field-wrap">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12a2 2 0 0 1 2 2v7H4v-7a2 2 0 0 1 2-2Z"/></svg>
+          </span>
+          <input id="profilePin" class="pin-input" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Wpisz 4–8 cyfr">
         </div>
-        <button id="createUserBtn" class="primary top-gap">Utwórz i przypisz instalację</button>
+        <button id="claimProfileBtn" class="primary primary-glow" type="button">
+          <span>Przypisz profil do tego urządzenia</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <details id="newUserDetails" class="auth-panel glass-card new-user-details">
+        <summary>
+          <span class="summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span><strong>Utwórz nowego użytkownika</strong><small>Nowy profil, PIN i cele dzienne</small></span>
+          <svg class="details-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="new-user-body">
+          <div class="form-grid">
+            <label>Imię / nazwa<input id="newName" maxlength="60" placeholder="np. Monika" autocomplete="name"></label>
+            <label>PIN<input id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="4–8 cyfr"></label>
+            <label>Kalorie / dzień<div class="unit-input"><input id="newCalories" type="number" min="0" max="10000" value="2000"><span>kcal</span></div></label>
+            <label>Białko / dzień<div class="unit-input"><input id="newProtein" type="number" min="0" max="1000" value="120"><span>g</span></div></label>
+            <label>Węglowodany / dzień<div class="unit-input"><input id="newCarbs" type="number" min="0" max="2000" value="220"><span>g</span></div></label>
+            <label>Tłuszcz / dzień<div class="unit-input"><input id="newFat" type="number" min="0" max="1000" value="70"><span>g</span></div></label>
+          </div>
+          <button id="createUserBtn" class="primary primary-glow" type="button">Utwórz i przypisz instalację</button>
+        </div>
       </details>
-      <p id="authError" class="error hidden"></p>
+      <p id="authError" class="error hidden" role="alert"></p>
+      <div class="security-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.5 3 7.8 7.5 9.5 4.5-1.7 7.5-5 7.5-9.5V6L12 3Zm-3 9 2 2 4-4"/></svg>
+        Po przypisaniu instalacji profil pozostaje stały na tym urządzeniu.
+      </div>
     </div>
   </section>
 
   <div id="app" class="app hidden">
     <header class="topbar">
-      <div>
+      <div class="topbar-copy">
         <div class="eyebrow">AI Monitor żywienia</div>
-        <h1 id="welcome">Dzisiaj</h1>
+        <h1 id="welcome">Dzień dobry</h1>
+        <p id="headerDate" class="topbar-date"></p>
       </div>
-      <button id="installBtn" class="ghost" type="button">Zainstaluj</button>
+      <button id="installBtn" class="icon-button ghost hidden" type="button" aria-label="Zainstaluj aplikację" title="Zainstaluj aplikację">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
     </header>
 
     <main>
       <section id="viewToday" class="view active">
-        <div class="summary-card">
-          <div class="summary-head"><span id="todayDate"></span><span id="mealCount"></span></div>
-          <div class="kcal-main"><strong id="kcalConsumed">0</strong><span>/ <span id="kcalTarget">0</span> kcal</span></div>
-          <div class="progress"><div id="kcalBar"></div></div>
-          <div class="macro-grid">
-            <div><b id="proteinConsumed">0</b><span>Białko</span><small id="proteinTarget"></small></div>
-            <div><b id="carbsConsumed">0</b><span>Węglowodany</span><small id="carbsTarget"></small></div>
-            <div><b id="fatConsumed">0</b><span>Tłuszcz</span><small id="fatTarget"></small></div>
+        <article class="summary-card calorie-card">
+          <div class="calorie-orb" aria-hidden="true"></div>
+          <div class="summary-head">
+            <span class="summary-label">Kalorie dzisiaj</span>
+            <span id="mealCount" class="pill pill-muted">0 posiłków</span>
           </div>
+          <div class="calorie-layout">
+            <div>
+              <div class="kcal-main"><strong id="kcalConsumed">0</strong><span>kcal</span></div>
+              <div class="target-copy">Cel: <strong id="kcalTarget">0</strong> kcal</div>
+            </div>
+            <div class="percent-ring" aria-label="Realizacja celu kalorii"><strong id="kcalPercent">0%</strong><small>celu</small></div>
+          </div>
+          <div class="progress progress-lg"><div id="kcalBar"></div></div>
+          <div class="remaining-row">
+            <span>Pozostało na dziś</span>
+            <strong id="kcalRemaining">0 kcal</strong>
+          </div>
+          <span id="todayDate" class="visually-hidden"></span>
+        </article>
+
+        <div class="macro-grid">
+          <article class="macro-card macro-protein">
+            <div class="macro-top"><span class="macro-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16M7 8v8M17 8v8M2 10v4M22 10v4"/></svg></span><span id="proteinPercent" class="macro-percent">0%</span></div>
+            <div class="macro-name">Białko</div>
+            <div class="macro-value"><b id="proteinConsumed">0</b><span>g</span></div>
+            <small id="proteinTarget">cel 0 g</small>
+            <div class="mini-progress"><div id="proteinBar"></div></div>
+          </article>
+          <article class="macro-card macro-carbs">
+            <div class="macro-top"><span class="macro-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3c3 3 4.5 6 4.5 9.1A4.5 4.5 0 0 1 12 16.5 4.5 4.5 0 0 1 7.5 12C7.5 8.9 9 6 12 3Zm0 13.5V21"/></svg></span><span id="carbsPercent" class="macro-percent">0%</span></div>
+            <div class="macro-name">Węglowodany</div>
+            <div class="macro-value"><b id="carbsConsumed">0</b><span>g</span></div>
+            <small id="carbsTarget">cel 0 g</small>
+            <div class="mini-progress"><div id="carbsBar"></div></div>
+          </article>
+          <article class="macro-card macro-fat">
+            <div class="macro-top"><span class="macro-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s5 6 5 10a5 5 0 1 1-10 0c0-4 5-10 5-10Z"/></svg></span><span id="fatPercent" class="macro-percent">0%</span></div>
+            <div class="macro-name">Tłuszcz</div>
+            <div class="macro-value"><b id="fatConsumed">0</b><span>g</span></div>
+            <small id="fatTarget">cel 0 g</small>
+            <div class="mini-progress"><div id="fatBar"></div></div>
+          </article>
         </div>
-        <div class="section-title"><h2>Posiłki</h2><button class="small" data-nav="add">+ Dodaj</button></div>
-        <div id="todayMeals" class="cards"></div>
+
+        <div class="section-title meals-title">
+          <div><div class="section-kicker">Dziennik</div><h2>Posiłki dzisiaj</h2></div>
+          <button class="small add-inline" data-nav="add" type="button"><span>Dodaj posiłek</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <div id="todayMeals" class="cards meal-list"></div>
       </section>
 
       <section id="viewAdd" class="view">
-        <h2>Dodaj posiłek</h2>
+        <div class="view-heading"><div class="section-kicker">Rejestracja</div><h2>Dodaj posiłek</h2><p>Wybierz zdjęcie albo opisz, co zostało zjedzone.</p></div>
         <div class="action-grid">
-          <label class="upload-tile">📷<strong>Zrób zdjęcie</strong><span>Aparat lub galeria</span><input id="photoInput" type="file" accept="image/*" capture="environment"></label>
-          <button id="showTextBtn" class="upload-tile">✍️<strong>Wpisz ręcznie</strong><span>Opis posiłku</span></button>
+          <label class="upload-tile upload-photo">
+            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h4l1.5-2h5L16 7h4v12H4V7Zm8 3.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/></svg></span>
+            <span class="action-copy"><strong>Zrób zdjęcie</strong><small>AI rozpozna posiłek ze zdjęcia</small></span>
+            <span class="action-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+            <input id="photoInput" type="file" accept="image/*" capture="environment">
+          </label>
+          <button id="showTextBtn" class="upload-tile" type="button">
+            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 20 4.5-1 9.8-9.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20Zm9.8-12.3 2.5 2.5"/></svg></span>
+            <span class="action-copy"><strong>Wpisz ręcznie</strong><small>Opisz posiłek tekstem</small></span>
+            <span class="action-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+          </button>
         </div>
-        <div id="textPanel" class="panel hidden">
+
+        <div id="textPanel" class="panel glass-card hidden">
+          <div class="panel-heading"><span class="panel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8M8 13h5"/></svg></span><div><h3>Opis posiłku</h3><p>Podaj produkty i przybliżone ilości, jeśli je znasz.</p></div></div>
           <label>Co zjadłeś?<textarea id="mealText" rows="4" placeholder="np. dwie kromki chleba z serem i pomidorem"></textarea></label>
-          <button id="analyzeTextBtn" class="primary">Analizuj opis</button>
+          <button id="analyzeTextBtn" class="primary primary-glow" type="button">Analizuj opis</button>
         </div>
-        <div id="analysisPanel" class="panel hidden">
-          <div class="section-title"><h3>Wynik analizy</h3><span id="analysisConfidence" class="pill"></span></div>
-          <label>Opis<input id="analysisDescription"></label>
+
+        <div id="analysisPanel" class="panel analysis-panel glass-card hidden">
+          <div class="analysis-title-row">
+            <div><div class="section-kicker">AI</div><h3>Wynik analizy AI</h3></div>
+            <span id="analysisConfidence" class="pill confidence-pill"></span>
+          </div>
+          <label>Opis posiłku<input id="analysisDescription"></label>
+          <div class="analysis-subtitle"><span>Wykryte składniki</span><small>gramatura i kcal</small></div>
           <div id="analysisItems" class="analysis-items"></div>
-          <label>Kalorie do zapisu<input id="analysisCalories" type="number" min="0" max="20000"></label>
-          <div class="button-row"><button id="saveMealBtn" class="primary">Zapisz posiłek</button><button id="saveFavoriteBtn" class="secondary">Dodaj do ulubionych</button></div>
+          <label>Kalorie do zapisu<div class="unit-input"><input id="analysisCalories" type="number" min="0" max="20000"><span>kcal</span></div></label>
+          <div class="button-row"><button id="saveMealBtn" class="primary primary-glow" type="button">Zapisz posiłek</button><button id="saveFavoriteBtn" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>Dodaj do ulubionych</button></div>
         </div>
       </section>
 
       <section id="viewFavorites" class="view">
-        <h2>Ulubione</h2>
-        <div id="favoritesList" class="cards"></div>
+        <div class="view-heading"><div class="section-kicker">Skróty</div><h2>Ulubione</h2><p>Gotowe posiłki, które możesz dodać jednym dotknięciem.</p></div>
+        <div id="favoritesList" class="cards favorites-list"></div>
       </section>
 
       <section id="viewHistory" class="view">
-        <h2>Historia</h2>
-        <div id="historyList" class="cards"></div>
+        <div class="view-heading history-heading-row"><div><div class="section-kicker">Archiwum</div><h2>Historia</h2><p>Podsumowania poprzednich dni i zapisane posiłki.</p></div><div id="historyMonth" class="month-chip"></div></div>
+        <div id="historyDaysStrip" class="days-strip" aria-label="Dni z historią"></div>
+        <div id="historyList" class="cards history-list"></div>
       </section>
 
       <section id="viewProfile" class="view">
-        <h2>Profil</h2>
-        <div class="panel">
-          <div class="profile-lock"><span>🔒</span><div><strong id="profileName">Profil przypisany</strong><p>Ta instalacja jest trwale przypisana do tego profilu. W aplikacji nie ma przełączania użytkownika.</p></div></div>
+        <div class="view-heading"><div class="section-kicker">Konto</div><h2>Profil i ustawienia</h2><p>Cele dzienne i informacje o przypisaniu aplikacji.</p></div>
+        <div class="panel profile-card glass-card">
+          <div id="profileAvatar" class="profile-avatar" aria-hidden="true">A</div>
+          <div class="profile-card-copy"><strong id="profileName">Profil przypisany</strong><p id="profileSubline">Ta instalacja należy do jednego profilu.</p></div>
+          <span class="status-dot" title="Profil aktywny"></span>
         </div>
-        <div class="panel">
-          <h3>Dzienne limity</h3>
-          <div class="form-grid">
-            <label>Kalorie<input id="setCalories" type="number" min="0" max="10000"></label>
-            <label>Białko g<input id="setProtein" type="number" min="0" max="1000"></label>
-            <label>Węglowodany g<input id="setCarbs" type="number" min="0" max="2000"></label>
-            <label>Tłuszcz g<input id="setFat" type="number" min="0" max="1000"></label>
+
+        <div class="panel glass-card security-panel">
+          <div class="panel-heading compact"><span class="panel-icon lock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12a2 2 0 0 1 2 2v7H4v-7a2 2 0 0 1 2-2Z"/></svg></span><div><h3>Bezpieczeństwo</h3><p>Profil jest przypisany do tego urządzenia. W aplikacji nie ma przełączania użytkownika ani wylogowania.</p></div></div>
+        </div>
+
+        <div class="panel glass-card goals-panel">
+          <div class="panel-heading compact"><span class="panel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M6 6l12 12M18 6 6 18"/></svg></span><div><h3>Dzienne cele</h3><p>Dostosuj limity używane w podsumowaniach.</p></div></div>
+          <div class="form-grid goals-grid">
+            <label>Kalorie<div class="unit-input"><input id="setCalories" type="number" min="0" max="10000"><span>kcal</span></div></label>
+            <label>Białko<div class="unit-input"><input id="setProtein" type="number" min="0" max="1000"><span>g</span></div></label>
+            <label>Węglowodany<div class="unit-input"><input id="setCarbs" type="number" min="0" max="2000"><span>g</span></div></label>
+            <label>Tłuszcz<div class="unit-input"><input id="setFat" type="number" min="0" max="1000"><span>g</span></div></label>
           </div>
-          <button id="saveSettingsBtn" class="primary top-gap">Zapisz limity</button>
+          <button id="saveSettingsBtn" class="primary primary-glow" type="button">Zapisz zmiany</button>
         </div>
       </section>
     </main>
 
-    <nav class="bottom-nav">
-      <button data-nav="today" class="active">◉<span>Dzisiaj</span></button>
-      <button data-nav="add">＋<span>Dodaj</span></button>
-      <button data-nav="favorites">★<span>Ulubione</span></button>
-      <button data-nav="history">▤<span>Historia</span></button>
-      <button data-nav="profile">●<span>Profil</span></button>
+    <nav class="bottom-nav" aria-label="Nawigacja główna">
+      <button data-nav="today" class="active" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20H5v-8.5M9 20v-6h6v6"/></svg><span>Dzisiaj</span></button>
+      <button data-nav="add" type="button"><span class="nav-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span>Dodaj</span></button>
+      <button data-nav="favorites" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg><span>Ulubione</span></button>
+      <button data-nav="history" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 3v6M17 3v6M5 9h14v11H5zM8 13h3M13 13h3M8 17h3"/></svg><span>Historia</span></button>
+      <button data-nav="profile" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8c.8-4 3.1-6 7-6s6.2 2 7 6"/></svg><span>Profil</span></button>
     </nav>
   </div>
 
-  <div id="loading" class="loading hidden"><div class="spinner"></div><strong id="loadingText">Przetwarzam…</strong></div>
-  <div id="toast" class="toast hidden"></div>
+  <div id="loading" class="loading hidden" role="status" aria-live="polite">
+    <div class="loading-card">
+      <div class="loading-mark" aria-hidden="true">AI</div>
+      <div class="loading-line" aria-hidden="true"><span></span></div>
+      <strong id="loadingText">Przetwarzam…</strong>
+      <p id="loadingSubtext">To może potrwać kilka sekund.</p>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
 
-  <script>
-    (()=>{
-      let installPrompt=null;
-      const standalone=()=>window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
-      const buttons=()=>[document.getElementById('installFirstBtn'),document.getElementById('installBtn')].filter(Boolean);
-      function refreshInstallButtons(){
-        if(standalone()) buttons().forEach(b=>b.classList.add('hidden'));
-        else buttons().forEach(b=>b.classList.remove('hidden'));
-      }
-      async function installApp(){
-        if(standalone()) return;
-        if(installPrompt){
-          installPrompt.prompt();
-          await installPrompt.userChoice;
-          installPrompt=null;
-          refreshInstallButtons();
-          return;
-        }
-        const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
-        if(ios){
-          alert('Na iPhonie: stuknij Udostępnij w Safari, a następnie „Dodaj do ekranu początkowego”.');
-        }else{
-          alert('Jeśli przeglądarka nie pokazuje okna instalacji, otwórz jej menu i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.');
-        }
-      }
-      window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;refreshInstallButtons();});
-      window.addEventListener('appinstalled',refreshInstallButtons);
-      document.addEventListener('DOMContentLoaded',()=>{buttons().forEach(b=>b.addEventListener('click',installApp));refreshInstallButtons();});
-    })();
-  </script>
-  <script src="app.js?v=20260814-6" defer></script>
+  <script src="app.js?v=20260814-7" defer></script>
 </body>
 </html>
