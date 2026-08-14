@@ -1,34 +1,11 @@
-name: One-off install-first PWA gate
+name: Disabled one-off install-first updater
 
 on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: github.event.head_commit.message == 'Run install-first PWA patch'
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Apply patch
-        run: python patch-install.py
-      - name: Validate
-        run: |
-          git diff --check
-          grep -F 'Zainstaluj aplikację, aby przejść do logowania' index.html
-          grep -F '.auth-screen.install-only #existingProfiles' styles.css
-          grep -F "'install-only'" app.js
-          grep -F 'ai-monitor-zywienia-20260814-11' sw.js
-      - name: Commit changes
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html styles.css app.js sw.js
-          git commit -m 'Require PWA installation before login'
-          git push
+      - run: echo disabled
