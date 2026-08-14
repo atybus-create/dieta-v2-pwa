@@ -1,34 +1,11 @@
-name: One-off styled logout modal updater
+name: Disabled one-off logout modal updater
 
 on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: github.event.head_commit.message == 'Run styled logout modal patch'
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Apply patch
-        run: python patch-logout-modal.py
-      - name: Validate
-        run: |
-          git diff --check
-          grep -F 'id="logoutModal"' index.html
-          grep -F 'function openLogoutModal()' app.js
-          grep -F '.logout-modal-card {' styles.css
-          grep -F 'ai-monitor-zywienia-20260814-13' sw.js
-      - name: Commit changes
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html styles.css app.js sw.js
-          git commit -m 'Style logout confirmation modal'
-          git push
+      - run: echo disabled
