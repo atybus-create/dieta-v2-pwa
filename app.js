@@ -2339,6 +2339,9 @@ function refreshInstallButtons() {
     $('installBtn')
   ].filter(Boolean);
 
+  const hint =
+    $('installHint');
+
 
   if (
     isStandalone()
@@ -2351,6 +2354,10 @@ function refreshInstallButtons() {
         )
     );
 
+    hint?.classList.add(
+      'hidden'
+    );
+
     return;
 
   }
@@ -2361,6 +2368,10 @@ function refreshInstallButtons() {
       button.classList.remove(
         'hidden'
       )
+  );
+
+  hint?.classList.remove(
+    'hidden'
   );
 }
 
@@ -2569,6 +2580,21 @@ async function init() {
       state.deferredPrompt =
         null;
 
+      if (!isStandalone()) {
+
+        $('installFirstBtn')
+          ?.classList.add(
+            'hidden'
+          );
+
+        if ($('installHint')) {
+          $('installHint').textContent =
+            'Aplikacja została zainstalowana. Uruchom ją z ikony na ekranie głównym.';
+        }
+
+        return;
+      }
+
       refreshInstallButtons();
 
     }
@@ -2646,13 +2672,44 @@ async function init() {
 
     navigator.serviceWorker
       .register(
-        './sw.js?v=20260814-10'
+        './sw.js?v=20260814-11'
       )
       .catch(
         () => {}
       );
 
   }
+
+
+  /*
+    W przeglądarce pokazujemy tylko instalację PWA.
+    Logowanie i tworzenie profilu są dostępne dopiero
+    po uruchomieniu aplikacji w trybie standalone.
+  */
+
+  if (
+    !isStandalone()
+  ) {
+
+    $('authScreen')
+      ?.classList.add(
+        'install-only'
+      );
+
+    hide('app');
+    show('authScreen');
+    refreshInstallButtons();
+    hideSplash();
+
+    return;
+  }
+
+  $('authScreen')
+    ?.classList.remove(
+      'install-only'
+    );
+
+  refreshInstallButtons();
 
 
   /*

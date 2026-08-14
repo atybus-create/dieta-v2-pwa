@@ -335,6 +335,27 @@ label,
 }
 
 
+.auth-screen.install-only {
+  place-items: center;
+}
+
+.auth-screen.install-only .auth-intro,
+.auth-screen.install-only #existingProfiles,
+.auth-screen.install-only #newUserDetails,
+.auth-screen.install-only #authError,
+.auth-screen.install-only .security-note {
+  display: none !important;
+}
+
+.auth-screen.install-only .auth-shell {
+  width: min(580px, 100%);
+}
+
+.auth-screen.install-only .install-card {
+  margin: 0;
+}
+
+
 .auth-intro {
   padding: 20px 10px 12px;
 
