@@ -27,6 +27,7 @@ jobs:
           tags = [
               '<script src="confirm-modal.js?v=20260814-10" defer></script>',
               '<script src="analysis-item-removal.js?v=20260814-1" defer></script>',
+              '<script src="photo-compression.js?v=20260814-1" defer></script>',
           ]
           for tag in tags:
               if tag not in s:
