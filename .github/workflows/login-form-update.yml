@@ -1,11 +1,320 @@
-name: Disabled one-off logout modal updater
+name: One-off photo compression updater
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/login-form-update.yml'
+
+permissions:
+  contents: write
 
 jobs:
-  disabled:
-    if: ${{ false }}
+  patch:
     runs-on: ubuntu-latest
     steps:
-      - run: echo disabled
+      - uses: actions/checkout@v4
+
+      - name: Add client-side photo resize and compression
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          app = Path('app.js')
+          s = app.read_text(encoding='utf-8')
+
+          marker = "async function analyzePhoto(\n  file\n) {"
+
+          compressor = r'''const PHOTO_MAX_EDGE = 1280;
+const PHOTO_JPEG_QUALITY = 0.78;
+
+
+async function optimizePhotoForUpload(
+  file
+) {
+
+  if (
+    !file ||
+    !String(file.type || '').startsWith('image/')
+  ) {
+    return file;
+  }
+
+
+  let objectUrl = '';
+
+
+  try {
+
+    objectUrl =
+      URL.createObjectURL(file);
+
+
+    const image =
+      await new Promise(
+        (resolve, reject) => {
+
+          const img =
+            new Image();
+
+
+          img.onload =
+            () => resolve(img);
+
+
+          img.onerror =
+            () => reject(
+              new Error(
+                'Nie udało się odczytać zdjęcia.'
+              )
+            );
+
+
+          img.src =
+            objectUrl;
+        }
+      );
+
+
+    const sourceWidth =
+      Number(
+        image.naturalWidth ||
+        image.width ||
+        0
+      );
+
+
+    const sourceHeight =
+      Number(
+        image.naturalHeight ||
+        image.height ||
+        0
+      );
+
+
+    if (
+      !sourceWidth ||
+      !sourceHeight
+    ) {
+      return file;
+    }
+
+
+    const scale =
+      Math.min(
+        1,
+        PHOTO_MAX_EDGE /
+        Math.max(
+          sourceWidth,
+          sourceHeight
+        )
+      );
+
+
+    const targetWidth =
+      Math.max(
+        1,
+        Math.round(
+          sourceWidth * scale
+        )
+      );
+
+
+    const targetHeight =
+      Math.max(
+        1,
+        Math.round(
+          sourceHeight * scale
+        )
+      );
+
+
+    const canvas =
+      document.createElement(
+        'canvas'
+      );
+
+
+    canvas.width =
+      targetWidth;
+
+    canvas.height =
+      targetHeight;
+
+
+    const context =
+      canvas.getContext(
+        '2d',
+        {
+          alpha: false
+        }
+      );
+
+
+    if (!context) {
+      return file;
+    }
+
+
+    context.drawImage(
+      image,
+      0,
+      0,
+      targetWidth,
+      targetHeight
+    );
+
+
+    const blob =
+      await new Promise(
+        resolve =>
+          canvas.toBlob(
+            resolve,
+            'image/jpeg',
+            PHOTO_JPEG_QUALITY
+          )
+      );
+
+
+    if (!blob) {
+      return file;
+    }
+
+
+    if (
+      scale === 1 &&
+      blob.size >= file.size
+    ) {
+      return file;
+    }
+
+
+    const baseName =
+      String(
+        file.name ||
+        'meal'
+      )
+        .replace(
+          /\.[^.]+$/,
+          ''
+        ) ||
+      'meal';
+
+
+    const optimized =
+      new File(
+        [blob],
+        `${baseName}.jpg`,
+        {
+          type:
+            'image/jpeg',
+          lastModified:
+            Date.now()
+        }
+      );
+
+
+    console.info(
+      'Photo optimized before upload',
+      {
+        originalBytes:
+          file.size,
+        optimizedBytes:
+          optimized.size,
+        sourceWidth,
+        sourceHeight,
+        targetWidth,
+        targetHeight
+      }
+    );
+
+
+    return optimized;
+
+  } catch (error) {
+
+    console.warn(
+      'Photo optimization failed; sending original file.',
+      error
+    );
+
+    return file;
+
+  } finally {
+
+    if (objectUrl) {
+      URL.revokeObjectURL(
+        objectUrl
+      );
+    }
+
+  }
+}
+'''
+
+          if 'async function optimizePhotoForUpload(' not in s:
+              if marker not in s:
+                  raise SystemExit('analyzePhoto marker not found')
+              s = s.replace(marker, compressor + '\n\n' + marker, 1)
+
+          old_call = """    const data =
+      await api(
+        'analyze_photo',
+        {},
+        file
+      );"""
+
+          new_call = """    const uploadFile =
+      await optimizePhotoForUpload(
+        file
+      );
+
+
+    const data =
+      await api(
+        'analyze_photo',
+        {},
+        uploadFile
+      );"""
+
+          if new_call not in s:
+              if old_call not in s:
+                  raise SystemExit('photo API call marker not found')
+              s = s.replace(old_call, new_call, 1)
+
+          app.write_text(s, encoding='utf-8')
+
+          index = Path('index.html')
+          i = index.read_text(encoding='utf-8')
+          i = i.replace(
+              'src="app.js?v=20260814-13"',
+              'src="app.js?v=20260814-14"'
+          )
+          index.write_text(i, encoding='utf-8')
+
+          sw = Path('sw.js')
+          w = sw.read_text(encoding='utf-8')
+          w = w.replace(
+              "'ai-monitor-zywienia-20260814-13'",
+              "'ai-monitor-zywienia-20260814-14'"
+          )
+          w = w.replace(
+              "'./app.js?v=20260814-13'",
+              "'./app.js?v=20260814-14'"
+          )
+          sw.write_text(w, encoding='utf-8')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Nothing to change"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html sw.js
+          git commit -m "Optimize photo uploads before analysis"
+          git push
