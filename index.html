@@ -131,10 +131,10 @@
     }
   </style>
 
-  <link rel="manifest" href="manifest.webmanifest?v=20260814-9">
-  <link rel="icon" href="icon.svg?v=20260814-9" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png?v=20260814-9">
-  <link rel="stylesheet" href="styles.css?v=20260814-9">
+  <link rel="manifest" href="manifest.webmanifest?v=20260814-10">
+  <link rel="icon" href="icon.svg?v=20260814-10" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png?v=20260814-10">
+  <link rel="stylesheet" href="styles.css?v=20260814-10">
 </head>
 
 <body>
@@ -282,22 +282,23 @@
         </div>
 
         <h2>
-          Wybierz istniejącego użytkownika
+          ZALOGUJ SIĘ
         </h2>
 
-        <select
-          id="profileSelect"
-          class="visually-hidden"
-          aria-hidden="true"
-          tabindex="-1"
-        ></select>
+        <label
+          class="field-label"
+          for="profileLogin"
+        >
+          Imię lub login
+        </label>
 
-        <div
-          id="profileCards"
-          class="profile-choices"
-          role="radiogroup"
-          aria-label="Użytkownicy"
-        ></div>
+        <input
+          id="profileLogin"
+          type="text"
+          autocomplete="username"
+          maxlength="60"
+          placeholder="Wpisz imię lub login"
+        >
 
 
         <label
@@ -343,7 +344,7 @@
           type="button"
         >
           <span>
-            Przypisz profil do tego urządzenia
+            Zaloguj
           </span>
 
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1656,7 +1657,7 @@
 
 
   <script
-    src="app.js?v=20260814-9"
+    src="app.js?v=20260814-10"
     defer
   ></script>
 

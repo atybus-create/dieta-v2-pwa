@@ -492,183 +492,9 @@ function renderProfileChoices(
 ) {
 
   state.profiles =
-    users;
-
-
-  const select =
-    $('profileSelect');
-
-  const box =
-    $('profileCards');
-
-
-  if (
-    !select ||
-    !box
-  ) {
-    return;
-  }
-
-
-  select.innerHTML = '';
-  box.innerHTML = '';
-
-
-  if (!users.length) {
-
-    box.innerHTML =
-      '<div class="empty">Nie znaleziono aktywnych profili.</div>';
-
-    return;
-  }
-
-
-  users.forEach(
-    (
-      user,
-      index
-    ) => {
-
-      const option =
-        document.createElement(
-          'option'
-        );
-
-
-      option.value =
-        user.userId;
-
-      option.textContent =
-        user.displayName;
-
-
-      select.appendChild(
-        option
-      );
-
-
-      const button =
-        document.createElement(
-          'button'
-        );
-
-
-      button.type =
-        'button';
-
-
-      button.className =
-        'profile-choice' +
-        (
-          index === 0
-            ? ' active'
-            : ''
-        );
-
-
-      button.dataset.userId =
-        user.userId;
-
-
-      button.setAttribute(
-        'role',
-        'radio'
-      );
-
-
-      button.setAttribute(
-        'aria-checked',
-        index === 0
-          ? 'true'
-          : 'false'
-      );
-
-
-      button.innerHTML =
-        `
-        <span class="profile-choice-avatar">
-          ${escapeHtml(initials(user.displayName))}
-        </span>
-
-        <span class="profile-choice-copy">
-          <strong>
-            ${escapeHtml(user.displayName)}
-          </strong>
-
-          <small>
-            Profil istniejący
-          </small>
-        </span>
-
-        <span class="choice-check">
-          <svg viewBox="0 0 24 24">
-            <path d="m6 12 4 4 8-9"/>
-          </svg>
-        </span>
-        `;
-
-
-      button.onclick =
-        () =>
-          selectProfile(
-            user.userId
-          );
-
-
-      box.appendChild(
-        button
-      );
-
-    }
-  );
-
-
-  select.selectedIndex =
-    0;
-}
-
-
-function selectProfile(
-  userId
-) {
-
-  const select =
-    $('profileSelect');
-
-
-  if (select) {
-    select.value =
-      userId;
-  }
-
-
-  document
-    .querySelectorAll(
-      '.profile-choice'
-    )
-    .forEach(
-      button => {
-
-        const active =
-          button.dataset.userId ===
-          userId;
-
-
-        button.classList.toggle(
-          'active',
-          active
-        );
-
-
-        button.setAttribute(
-          'aria-checked',
-          active
-            ? 'true'
-            : 'false'
-        );
-
-      }
-    );
+    Array.isArray(users)
+      ? users
+      : [];
 }
 
 
@@ -714,8 +540,9 @@ async function claimProfile() {
   hide('authError');
 
 
-  const userId =
-    $('profileSelect')?.value || '';
+  const login =
+    $('profileLogin')?.value
+      .trim() || '';
 
 
   const accessPin =
@@ -724,24 +551,79 @@ async function claimProfile() {
 
 
   if (
-    !userId ||
+    !login ||
     !accessPin
   ) {
 
     $('authError').textContent =
-      'Wybierz użytkownika i wpisz PIN.';
+      'Wpisz imię lub login oraz PIN.';
 
     show('authError');
 
     return;
+  }
 
+
+  const normalizeLogin = value =>
+    String(value || '')
+      .trim()
+      .toLocaleLowerCase('pl-PL');
+
+
+  const wanted =
+    normalizeLogin(login);
+
+
+  const byUserId =
+    state.profiles.find(
+      user =>
+        normalizeLogin(user.userId) ===
+        wanted
+    );
+
+
+  const byDisplayName =
+    state.profiles.filter(
+      user =>
+        normalizeLogin(user.displayName) ===
+        wanted
+    );
+
+
+  if (
+    !byUserId &&
+    byDisplayName.length > 1
+  ) {
+
+    $('authError').textContent =
+      'To imię pasuje do kilku profili. Wpisz login.';
+
+    show('authError');
+
+    return;
+  }
+
+
+  const profile =
+    byUserId ||
+    byDisplayName[0];
+
+
+  if (!profile?.userId) {
+
+    $('authError').textContent =
+      'Nieprawidłowe imię/login lub PIN.';
+
+    show('authError');
+
+    return;
   }
 
 
   loading(
     true,
-    'Przypisuję profil…',
-    'Weryfikuję PIN i zabezpieczam tę instalację.'
+    'Loguję…',
+    'Weryfikuję dane logowania.'
   );
 
 
@@ -751,7 +633,8 @@ async function claimProfile() {
       await post(
         AUTH,
         {
-          userId,
+          userId:
+            profile.userId,
           accessPin
         }
       );
@@ -760,9 +643,8 @@ async function claimProfile() {
     rememberSession(
       data.accessToken,
       data.userId,
-      $('profileSelect')
-        ?.selectedOptions?.[0]
-        ?.textContent ||
+      profile.displayName ||
+      login ||
       data.userId
     );
 
@@ -772,7 +654,7 @@ async function claimProfile() {
   } catch (e) {
 
     $('authError').textContent =
-      e.message;
+      'Nieprawidłowe imię/login lub PIN.';
 
     show('authError');
 
@@ -2610,6 +2492,23 @@ async function init() {
     claimProfile;
 
 
+  ['profileLogin', 'profilePin']
+    .forEach(
+      id =>
+        $(id)?.addEventListener(
+          'keydown',
+          event => {
+
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              claimProfile();
+            }
+
+          }
+        )
+    );
+
+
   $('createUserBtn').onclick =
     createUser;
 
@@ -2747,7 +2646,7 @@ async function init() {
 
     navigator.serviceWorker
       .register(
-        './sw.js?v=20260814-9'
+        './sw.js?v=20260814-10'
       )
       .catch(
         () => {}
