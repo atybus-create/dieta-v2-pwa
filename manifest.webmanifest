@@ -1,0 +1,14 @@
+{
+  "name":"Foto dieta",
+  "short_name":"Foto dieta",
+  "description":"Prywatna aplikacja do rejestrowania posiłków i makroskładników.",
+  "start_url":"/dieta-v2-pwa/",
+  "scope":"/dieta-v2-pwa/",
+  "display":"standalone",
+  "orientation":"portrait",
+  "background_color":"#f6f7fb",
+  "theme_color":"#0f172a",
+  "icons":[
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
