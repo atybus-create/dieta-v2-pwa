@@ -6,20 +6,20 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Foto dieta">
-  <title>Foto dieta</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260814-3">
+  <meta name="apple-mobile-web-app-title" content="AI Monitor żywienia">
+  <title>AI Monitor żywienia</title>
+  <link rel="manifest" href="manifest.webmanifest?v=20260814-4">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=20260814-3">
+  <link rel="stylesheet" href="styles.css?v=20260814-4">
 </head>
 <body>
   <div id="offline" class="offline hidden">Brak połączenia z siecią</div>
 
   <section id="authScreen" class="auth-screen hidden">
     <div class="auth-card">
-      <div class="brand-mark">FD</div>
-      <h1>Foto dieta</h1>
+      <div class="brand-mark">AI</div>
+      <h1>AI Monitor żywienia</h1>
       <p class="muted">Pierwsze uruchomienie. Przypisz tę instalację do jednej osoby.</p>
 
       <button id="installFirstBtn" class="primary install-first" type="button">Zainstaluj aplikację</button>
@@ -57,7 +57,7 @@
   <div id="app" class="app hidden">
     <header class="topbar">
       <div>
-        <div class="eyebrow">Foto dieta</div>
+        <div class="eyebrow">AI Monitor żywienia</div>
         <h1 id="welcome">Dzisiaj</h1>
       </div>
       <button id="installBtn" class="ghost" type="button">Zainstaluj</button>
@@ -168,6 +168,6 @@
       document.addEventListener('DOMContentLoaded',()=>{buttons().forEach(b=>b.addEventListener('click',installApp));refreshInstallButtons();});
     })();
   </script>
-  <script src="app.js?v=20260814-3" defer></script>
+  <script src="app.js?v=20260814-4" defer></script>
 </body>
 </html>
