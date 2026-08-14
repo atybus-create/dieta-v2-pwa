@@ -1,4 +1,4 @@
-name: One-off photo compression updater
+name: One-off install flow repair
 
 on:
   push:
@@ -15,298 +15,242 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add client-side photo resize and compression
+      - name: Repair PWA install flow
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           app = Path('app.js')
           s = app.read_text(encoding='utf-8')
 
-          marker = "async function analyzePhoto(\n  file\n) {"
+          standalone_block = '''function isStandalone() {
 
-          compressor = r'''const PHOTO_MAX_EDGE = 1280;
-const PHOTO_JPEG_QUALITY = 0.78;
+  return (
+    window.matchMedia(
+      '(display-mode: standalone)'
+    ).matches ||
+    window.navigator.standalone === true
+  );
+}
+'''
+
+          helpers = standalone_block + r'''
+
+function isEmbeddedBrowser() {
+
+  const ua =
+    String(
+      navigator.userAgent || ''
+    );
 
 
-async function optimizePhotoForUpload(
-  file
+  return /FBAN|FBAV|FB_IAB|Messenger|Instagram|TikTok|Line\/|; wv\)|\bwv\b/i.test(
+    ua
+  );
+}
+
+
+function showInstallGuidance(
+  message,
+  embedded = false
 ) {
 
-  if (
-    !file ||
-    !String(file.type || '').startsWith('image/')
-  ) {
-    return file;
+  const hint =
+    $('installHint');
+
+
+  if (hint) {
+    hint.textContent =
+      message;
+
+    hint.classList.remove(
+      'hidden'
+    );
   }
 
 
-  let objectUrl = '';
+  const button =
+    $('installFirstBtn');
 
 
-  try {
+  if (button) {
 
-    objectUrl =
-      URL.createObjectURL(file);
+    const title =
+      button.querySelector(
+        'strong'
+      );
 
-
-    const image =
-      await new Promise(
-        (resolve, reject) => {
-
-          const img =
-            new Image();
-
-
-          img.onload =
-            () => resolve(img);
-
-
-          img.onerror =
-            () => reject(
-              new Error(
-                'Nie udało się odczytać zdjęcia.'
-              )
-            );
-
-
-          img.src =
-            objectUrl;
-        }
+    const subtitle =
+      button.querySelector(
+        'small'
       );
 
 
-    const sourceWidth =
-      Number(
-        image.naturalWidth ||
-        image.width ||
-        0
-      );
+    if (embedded) {
 
-
-    const sourceHeight =
-      Number(
-        image.naturalHeight ||
-        image.height ||
-        0
-      );
-
-
-    if (
-      !sourceWidth ||
-      !sourceHeight
-    ) {
-      return file;
-    }
-
-
-    const scale =
-      Math.min(
-        1,
-        PHOTO_MAX_EDGE /
-        Math.max(
-          sourceWidth,
-          sourceHeight
-        )
-      );
-
-
-    const targetWidth =
-      Math.max(
-        1,
-        Math.round(
-          sourceWidth * scale
-        )
-      );
-
-
-    const targetHeight =
-      Math.max(
-        1,
-        Math.round(
-          sourceHeight * scale
-        )
-      );
-
-
-    const canvas =
-      document.createElement(
-        'canvas'
-      );
-
-
-    canvas.width =
-      targetWidth;
-
-    canvas.height =
-      targetHeight;
-
-
-    const context =
-      canvas.getContext(
-        '2d',
-        {
-          alpha: false
-        }
-      );
-
-
-    if (!context) {
-      return file;
-    }
-
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      targetWidth,
-      targetHeight
-    );
-
-
-    const blob =
-      await new Promise(
-        resolve =>
-          canvas.toBlob(
-            resolve,
-            'image/jpeg',
-            PHOTO_JPEG_QUALITY
-          )
-      );
-
-
-    if (!blob) {
-      return file;
-    }
-
-
-    if (
-      scale === 1 &&
-      blob.size >= file.size
-    ) {
-      return file;
-    }
-
-
-    const baseName =
-      String(
-        file.name ||
-        'meal'
-      )
-        .replace(
-          /\.[^.]+$/,
-          ''
-        ) ||
-      'meal';
-
-
-    const optimized =
-      new File(
-        [blob],
-        `${baseName}.jpg`,
-        {
-          type:
-            'image/jpeg',
-          lastModified:
-            Date.now()
-        }
-      );
-
-
-    console.info(
-      'Photo optimized before upload',
-      {
-        originalBytes:
-          file.size,
-        optimizedBytes:
-          optimized.size,
-        sourceWidth,
-        sourceHeight,
-        targetWidth,
-        targetHeight
+      if (title) {
+        title.textContent =
+          'Otwórz w Chrome / przeglądarce';
       }
-    );
 
+      if (subtitle) {
+        subtitle.textContent =
+          'Użyj menu tej aplikacji i wybierz otwarcie linku w Chrome lub domyślnej przeglądarce.';
+      }
 
-    return optimized;
+    } else {
 
-  } catch (error) {
+      if (title) {
+        title.textContent =
+          'Zainstaluj aplikację';
+      }
 
-    console.warn(
-      'Photo optimization failed; sending original file.',
-      error
-    );
+      if (subtitle) {
+        subtitle.textContent =
+          'Jeśli instalacja nie pojawi się automatycznie, użyj menu przeglądarki.';
+      }
 
-    return file;
-
-  } finally {
-
-    if (objectUrl) {
-      URL.revokeObjectURL(
-        objectUrl
-      );
     }
-
   }
 }
 '''
 
-          if 'async function optimizePhotoForUpload(' not in s:
-              if marker not in s:
-                  raise SystemExit('analyzePhoto marker not found')
-              s = s.replace(marker, compressor + '\n\n' + marker, 1)
+          if 'function isEmbeddedBrowser()' not in s:
+              if standalone_block not in s:
+                  raise SystemExit('isStandalone marker not found')
+              s = s.replace(standalone_block, helpers, 1)
 
-          old_call = """    const data =
-      await api(
-        'analyze_photo',
-        {},
-        file
-      );"""
+          old_fallback = '''  const ios =
+    /iphone|ipad|ipod/i.test(
+      navigator.userAgent
+    );
 
-          new_call = """    const uploadFile =
-      await optimizePhotoForUpload(
-        file
+
+  if (ios) {
+
+    alert(
+      'Na iPhonie otwórz aplikację w Safari, stuknij Udostępnij i wybierz „Dodaj do ekranu początkowego”.'
+    );
+
+  } else {
+
+    alert(
+      'Jeśli przeglądarka nie pokazuje instalacji automatycznie, otwórz jej menu i wybierz „Zainstaluj aplikację” albo „Dodaj do ekranu głównego”.'
+    );
+
+  }
+'''
+
+          new_fallback = '''  if (
+    isEmbeddedBrowser()
+  ) {
+
+    showInstallGuidance(
+      'Ten link jest otwarty we wbudowanej przeglądarce. Otwórz menu i wybierz „Otwórz w Chrome” albo „Otwórz w przeglądarce”, a następnie zainstaluj aplikację stamtąd.',
+      true
+    );
+
+    return;
+  }
+
+
+  const ios =
+    /iphone|ipad|ipod/i.test(
+      navigator.userAgent
+    );
+
+
+  showInstallGuidance(
+    ios
+      ? 'Na iPhonie otwórz menu Udostępnij w Safari i wybierz „Dodaj do ekranu początkowego”.'
+      : 'Instalacja z tego przycisku nie jest teraz dostępna. Użyj menu przeglądarki i wybierz „Zainstaluj aplikację” albo „Dodaj do ekranu głównego”.'
+  );
+'''
+
+          if old_fallback in s:
+              s = s.replace(old_fallback, new_fallback, 1)
+          elif new_fallback not in s:
+              raise SystemExit('install fallback marker not found')
+
+          old_gate = '''  if (
+    !isStandalone()
+  ) {
+
+    $('authScreen')
+      ?.classList.add(
+        'install-only'
       );
 
+    hide('app');
+    show('authScreen');
+    refreshInstallButtons();
+    hideSplash();
 
-    const data =
-      await api(
-        'analyze_photo',
-        {},
-        uploadFile
-      );"""
+    return;
+  }
 
-          if new_call not in s:
-              if old_call not in s:
-                  raise SystemExit('photo API call marker not found')
-              s = s.replace(old_call, new_call, 1)
+  $('authScreen')
+    ?.classList.remove(
+      'install-only'
+    );
+
+  refreshInstallButtons();
+'''
+
+          new_gate = '''  if (
+    !isStandalone() &&
+    isEmbeddedBrowser()
+  ) {
+
+    $('authScreen')
+      ?.classList.add(
+        'install-only'
+      );
+
+    hide('app');
+    show('authScreen');
+    refreshInstallButtons();
+
+    showInstallGuidance(
+      'Aby zainstalować lub uruchomić aplikację poprawnie, otwórz ten link w Chrome albo w domyślnej przeglądarce telefonu.',
+      true
+    );
+
+    hideSplash();
+
+    return;
+  }
+
+  $('authScreen')
+    ?.classList.remove(
+      'install-only'
+    );
+
+  refreshInstallButtons();
+'''
+
+          if old_gate in s:
+              s = s.replace(old_gate, new_gate, 1)
+          elif new_gate not in s:
+              raise SystemExit('browser gate marker not found')
 
           app.write_text(s, encoding='utf-8')
 
           index = Path('index.html')
           i = index.read_text(encoding='utf-8')
-          i = i.replace(
-              'src="app.js?v=20260814-13"',
-              'src="app.js?v=20260814-14"'
-          )
+          i = re.sub(r'app\.js\?v=20260814-\d+', 'app.js?v=20260814-15', i)
           index.write_text(i, encoding='utf-8')
 
           sw = Path('sw.js')
           w = sw.read_text(encoding='utf-8')
-          w = w.replace(
-              "'ai-monitor-zywienia-20260814-13'",
-              "'ai-monitor-zywienia-20260814-14'"
-          )
-          w = w.replace(
-              "'./app.js?v=20260814-13'",
-              "'./app.js?v=20260814-14'"
-          )
+          w = re.sub(r'ai-monitor-zywienia-20260814-\d+', 'ai-monitor-zywienia-20260814-15', w)
+          w = re.sub(r'app\.js\?v=20260814-\d+', 'app.js?v=20260814-15', w)
           sw.write_text(w, encoding='utf-8')
           PY
 
-      - name: Commit patch
+      - name: Commit repair
         shell: bash
         run: |
           if git diff --quiet; then
@@ -316,5 +260,5 @@ async function optimizePhotoForUpload(
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app.js index.html sw.js
-          git commit -m "Optimize photo uploads before analysis"
+          git commit -m "Repair PWA install flow for embedded browsers"
           git push
