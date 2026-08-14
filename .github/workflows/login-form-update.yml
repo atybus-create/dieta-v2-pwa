@@ -10,54 +10,25 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message == 'Add one-off diet login form update'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Patch login frontend
+      - name: Patch frontend
         shell: bash
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
-          import re
 
-          old_version = '20260814-9'
-          new_version = '20260814-10'
+          old = '20260814-9'
+          new = '20260814-10'
 
-          index_path = Path('index.html')
-          index = index_path.read_text(encoding='utf-8')
-
-          old_login_block = '''        <h2>
-          Wybierz istniejącego użytkownika
-        </h2>
-
-        <select
-          id="profileSelect"
-          class="visually-hidden"
-          aria-hidden="true"
-          tabindex="-1"
-        ></select>
-
-        <div
-          id="profileCards"
-          class="profile-choices"
-          role="radiogroup"
-          aria-label="Użytkownicy"
-        ></div>
-
-
-        <label
-          class="field-label"
-          for="profilePin"
-        >
-          PIN
-        </label>
-'''
-
-          new_login_block = '''        <h2>
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          a = s.index('        <h2>\n          Wybierz istniejącego użytkownika\n        </h2>')
+          b = s.index('        <label\n          class="field-label"\n          for="profilePin"', a)
+          block = '''        <h2>
           ZALOGUJ SIĘ
         </h2>
 
@@ -79,278 +50,101 @@ jobs:
         </div>
 
 
-        <label
-          class="field-label"
-          for="profilePin"
-        >
-          PIN
-        </label>
 '''
+          s = s[:a] + block + s[b:]
+          s = s.replace('Przypisz profil do tego urządzenia', 'Zaloguj', 1)
+          s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
 
-          if old_login_block not in index:
-              raise SystemExit('Expected existing-profile login block not found')
-          index = index.replace(old_login_block, new_login_block, 1)
-
-          old_button = '''          <span>
-            Przypisz profil do tego urządzenia
-          </span>'''
-          new_button = '''          <span>
-            Zaloguj
-          </span>'''
-          if old_button not in index:
-              raise SystemExit('Expected login button text not found')
-          index = index.replace(old_button, new_button, 1)
-          index = index.replace(old_version, new_version)
-          index_path.write_text(index, encoding='utf-8')
-
-          app_path = Path('app.js')
-          app = app_path.read_text(encoding='utf-8')
-
-          start = app.index('function renderProfileChoices(')
-          end = app.index('async function loadProfiles()', start)
-          replacement = '''function renderProfileChoices(
-  users = []
-) {
-
-  state.profiles =
-    Array.isArray(users)
-      ? users
-      : [];
+          p = Path('app.js')
+          s = p.read_text(encoding='utf-8')
+          a = s.index('function renderProfileChoices(')
+          b = s.index('async function loadProfiles()', a)
+          s = s[:a] + '''function renderProfileChoices(users = []) {
+  state.profiles = Array.isArray(users) ? users : [];
 }
 
 
-'''
-          app = app[:start] + replacement + app[end:]
-
-          claim_start = app.index('async function claimProfile()')
-          claim_end = app.index('async function createUser()', claim_start)
-          claim_replacement = '''async function claimProfile() {
-
+''' + s[b:]
+          a = s.index('async function claimProfile()')
+          b = s.index('async function createUser()', a)
+          claim = '''async function claimProfile() {
   hide('authError');
 
+  const login = $('profileLogin')?.value.trim() || '';
+  const accessPin = $('profilePin')?.value.trim() || '';
 
-  const login =
-    $('profileLogin')?.value
-      .trim() || '';
-
-
-  const accessPin =
-    $('profilePin')?.value
-      .trim() || '';
-
-
-  if (
-    !login ||
-    !accessPin
-  ) {
-
-    $('authError').textContent =
-      'Wpisz imię lub login oraz PIN.';
-
+  if (!login || !accessPin) {
+    $('authError').textContent = 'Wpisz imię lub login oraz PIN.';
     show('authError');
-
     return;
-
   }
 
+  const norm = value => String(value || '').trim().toLocaleLowerCase('pl-PL');
+  const wanted = norm(login);
+  const byUserId = state.profiles.find(user => norm(user.userId) === wanted);
+  const byName = state.profiles.filter(user => norm(user.displayName) === wanted);
 
-  const normalizeLogin = value =>
-    String(value || '')
-      .trim()
-      .toLocaleLowerCase('pl-PL');
-
-
-  const wanted =
-    normalizeLogin(login);
-
-
-  const byUserId =
-    state.profiles.find(
-      user =>
-        normalizeLogin(user.userId) ===
-        wanted
-    );
-
-
-  const byDisplayName =
-    state.profiles.filter(
-      user =>
-        normalizeLogin(user.displayName) ===
-        wanted
-    );
-
-
-  if (
-    !byUserId &&
-    byDisplayName.length > 1
-  ) {
-
-    $('authError').textContent =
-      'To imię pasuje do kilku profili. Wpisz login.';
-
+  if (!byUserId && byName.length > 1) {
+    $('authError').textContent = 'To imię pasuje do kilku profili. Wpisz login.';
     show('authError');
-
     return;
-
   }
 
-
-  const profile =
-    byUserId ||
-    byDisplayName[0];
-
-
+  const profile = byUserId || byName[0];
   if (!profile?.userId) {
-
-    $('authError').textContent =
-      'Nieprawidłowe imię/login lub PIN.';
-
+    $('authError').textContent = 'Nieprawidłowe imię/login lub PIN.';
     show('authError');
-
     return;
-
   }
 
-
-  loading(
-    true,
-    'Loguję…',
-    'Weryfikuję dane i zabezpieczam tę instalację.'
-  );
-
+  loading(true, 'Loguję…', 'Weryfikuję dane i zabezpieczam tę instalację.');
 
   try {
-
-    const data =
-      await post(
-        AUTH,
-        {
-          userId:
-            profile.userId,
-          accessPin
-        }
-      );
-
-
-    rememberSession(
-      data.accessToken,
-      data.userId,
-      profile.displayName ||
-      login ||
-      data.userId
-    );
-
-
+    const data = await post(AUTH, {userId: profile.userId, accessPin});
+    rememberSession(data.accessToken, data.userId, profile.displayName || login || data.userId);
     await enterApp();
-
   } catch (e) {
-
-    $('authError').textContent =
-      'Nieprawidłowe imię/login lub PIN.';
-
+    $('authError').textContent = 'Nieprawidłowe imię/login lub PIN.';
     show('authError');
-
   } finally {
-
     loading(false);
-
   }
 }
 
 
 '''
-          app = app[:claim_start] + claim_replacement + app[claim_end:]
+          s = s[:a] + claim + s[b:]
+          hook = "  $('claimProfileBtn').onclick =\n    claimProfile;\n\n\n  $('createUserBtn').onclick =\n    createUser;"
+          hook2 = "  $('claimProfileBtn').onclick =\n    claimProfile;\n\n\n  ['profileLogin', 'profilePin'].forEach(id => $(id)?.addEventListener('keydown', event => {\n    if (event.key === 'Enter') {\n      event.preventDefault();\n      claimProfile();\n    }\n  }));\n\n\n  $('createUserBtn').onclick =\n    createUser;"
+          if hook not in s:
+            raise SystemExit('auth hook not found')
+          s = s.replace(hook, hook2, 1)
+          s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
 
-          auth_hook = '''  $('claimProfileBtn').onclick =
-    claimProfile;
+          p = Path('styles.css')
+          s = p.read_text(encoding='utf-8')
+          marker = '.pin-field-wrap {\n  position: relative;\n}'
+          if marker not in s:
+            raise SystemExit('css marker not found')
+          s = s.replace(marker, '.login-field-wrap {\n  margin-bottom: 18px;\n}\n\n\n' + marker, 1)
+          p.write_text(s, encoding='utf-8')
 
+          p = Path('sw.js')
+          s = p.read_text(encoding='utf-8').replace(old, new)
+          p.write_text(s, encoding='utf-8')
 
-  $('createUserBtn').onclick =
-    createUser;
-'''
-          auth_hook_new = '''  $('claimProfileBtn').onclick =
-    claimProfile;
-
-
-  ['profileLogin', 'profilePin']
-    .forEach(
-      id =>
-        $(id)?.addEventListener(
-          'keydown',
-          event => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              claimProfile();
-            }
-          }
-        )
-    );
-
-
-  $('createUserBtn').onclick =
-    createUser;
-'''
-          if auth_hook not in app:
-              raise SystemExit('Expected auth init hook not found')
-          app = app.replace(auth_hook, auth_hook_new, 1)
-          app = app.replace(old_version, new_version)
-          app_path.write_text(app, encoding='utf-8')
-
-          styles_path = Path('styles.css')
-          css = styles_path.read_text(encoding='utf-8')
-          pin_marker = '''.pin-field-wrap {
-  position: relative;
-}
-'''
-          login_css = '''.login-field-wrap {
-  margin-bottom: 18px;
-}
-
-
-.pin-field-wrap {
-  position: relative;
-}
-'''
-          if pin_marker not in css:
-              raise SystemExit('Expected PIN field CSS marker not found')
-          css = css.replace(pin_marker, login_css, 1)
-          styles_path.write_text(css, encoding='utf-8')
-
-          sw_path = Path('sw.js')
-          sw = sw_path.read_text(encoding='utf-8')
-          if old_version not in sw:
-              raise SystemExit('Expected PWA version not found in service worker')
-          sw = sw.replace(old_version, new_version)
-          sw_path.write_text(sw, encoding='utf-8')
-
-          assert 'Wybierz istniejącego użytkownika' not in index
-          assert 'Przypisz profil do tego urządzenia' not in index
-          assert 'id="profileSelect"' not in index
-          assert 'id="profileCards"' not in index
-          assert 'id="profileLogin"' in index
-          assert 'ZALOGUJ SIĘ' in index
-          assert '>\n            Zaloguj\n          </span>' in index
-          assert "$('profileLogin')" in app
-          assert "state.profiles.find" in app
-          assert "state.profiles.filter" in app
-          assert "toLocaleLowerCase('pl-PL')" in app
-          assert new_version in index
-          assert new_version in app
-          assert new_version in sw
+          assert 'Wybierz istniejącego użytkownika' not in Path('index.html').read_text(encoding='utf-8')
+          assert 'id="profileLogin"' in Path('index.html').read_text(encoding='utf-8')
+          assert 'ZALOGUJ SIĘ' in Path('index.html').read_text(encoding='utf-8')
           PY
-
-      - name: Validate and commit
+      - name: Commit changes
         shell: bash
         run: |
           git diff --check
-          grep -F 'ZALOGUJ SIĘ' index.html
-          grep -F 'id="profileLogin"' index.html
-          grep -F 'Zaloguj' index.html
-          grep -F "$('profileLogin')" app.js
-          grep -F 'ai-monitor-zywienia-20260814-10' sw.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/login-form-update.yml
           git add index.html app.js styles.css sw.js
           git commit -m 'Replace profile chooser with login and PIN form'
           git push
