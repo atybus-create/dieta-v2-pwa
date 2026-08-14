@@ -483,6 +483,88 @@ function rememberSession(
 }
 
 
+function clearSession() {
+
+  localStorage.removeItem(
+    TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    PROFILE_KEY
+  );
+
+  state.token = '';
+  state.profile = null;
+  state.analysis = null;
+}
+
+
+async function logout() {
+
+  if (!state.token) {
+    return;
+  }
+
+  if (
+    !confirm(
+      'Wylogować się z aplikacji?'
+    )
+  ) {
+    return;
+  }
+
+  loading(
+    true,
+    'Wylogowuję…',
+    'Kończę sesję na tym urządzeniu.'
+  );
+
+  try {
+
+    await api(
+      'logout'
+    );
+
+    clearSession();
+
+    if ($('profileLogin')) {
+      $('profileLogin').value = '';
+    }
+
+    if ($('profilePin')) {
+      $('profilePin').value = '';
+    }
+
+    hide('app');
+
+    $('authScreen')
+      ?.classList.remove(
+        'install-only'
+      );
+
+    show('authScreen');
+
+    await loadProfiles();
+
+    toast(
+      'Wylogowano.'
+    );
+
+  } catch (e) {
+
+    toast(
+      e.message ||
+      'Nie udało się wylogować.'
+    );
+
+  } finally {
+
+    loading(false);
+
+  }
+}
+
+
 /* =====================================================
    AUTH / USERS
 ===================================================== */
@@ -2524,6 +2606,12 @@ async function init() {
     createUser;
 
 
+  if ($('logoutBtn')) {
+    $('logoutBtn').onclick =
+      logout;
+  }
+
+
   /* meal add */
 
   $('showTextBtn').onclick =
@@ -2672,7 +2760,7 @@ async function init() {
 
     navigator.serviceWorker
       .register(
-        './sw.js?v=20260814-11'
+        './sw.js?v=20260814-12'
       )
       .catch(
         () => {}
@@ -2734,22 +2822,7 @@ async function init() {
 
     } catch (e) {
 
-      localStorage.removeItem(
-        TOKEN_KEY
-      );
-
-
-      localStorage.removeItem(
-        PROFILE_KEY
-      );
-
-
-      state.token =
-        '';
-
-
-      state.profile =
-        null;
+      clearSession();
 
 
       toast(

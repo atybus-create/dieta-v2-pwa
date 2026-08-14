@@ -1,16 +1,16 @@
 const CACHE =
-  'ai-monitor-zywienia-20260814-11';
+  'ai-monitor-zywienia-20260814-12';
 
 
 const SHELL = [
   './',
   './index.html',
-  './styles.css?v=20260814-11',
-  './app.js?v=20260814-11',
-  './manifest.webmanifest?v=20260814-11',
-  './icon.svg?v=20260814-11',
-  './icon-192.png?v=20260814-11',
-  './icon-512.png?v=20260814-11'
+  './styles.css?v=20260814-12',
+  './app.js?v=20260814-12',
+  './manifest.webmanifest?v=20260814-12',
+  './icon.svg?v=20260814-12',
+  './icon-192.png?v=20260814-12',
+  './icon-512.png?v=20260814-12'
 ];
 
 

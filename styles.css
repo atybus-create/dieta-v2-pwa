@@ -307,6 +307,31 @@ label,
 }
 
 
+.logout-button {
+  align-self: center;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .045);
+  color: #dbe9e8;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, .08);
+  border-color: rgba(255, 255, 255, .22);
+}
+
+.logout-button:active {
+  transform: translateY(1px);
+}
+
+
 /* -------------------------------------------------------
    AUTH
 ------------------------------------------------------- */
