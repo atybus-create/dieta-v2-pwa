@@ -91,5 +91,13 @@
   }
 
   ensureStyles();
-  document.addEventListener('DOMContentLoaded', attachButton);
+
+  // app.js ładuje rozszerzenia asynchronicznie. Jeśli DOMContentLoaded już
+  // wystąpił, listener nie uruchomiłby się nigdy, więc montujemy przycisk
+  // natychmiast. Przy wcześniejszym etapie ładowania czekamy na DOM.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachButton, { once: true });
+  } else {
+    attachButton();
+  }
 })();
