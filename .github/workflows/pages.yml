@@ -30,6 +30,7 @@ jobs:
               '<script src="analysis-cancel.js?v=20260815-1" defer></script>',
               '<script src="photo-compression.js?v=20260814-1" defer></script>',
               '<script src="install-flow-fix.js?v=20260814-1" defer></script>',
+              '<script src="goals-calculator.js?v=20260815-1" defer></script>',
           ]
           for tag in tags:
               if tag not in s:
