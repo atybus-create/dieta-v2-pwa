@@ -20,7 +20,8 @@
       './water-tracker.js?v=20260815-water1',
       './water-compat.js?v=20260815-water2',
       './water-performance.js?v=20260815-water3',
-      './hydration-display.js?v=20260815-hydration1'
+      './hydration-display.js?v=20260815-hydration1',
+      './history-hydration.js?v=20260815-history-hydration1'
     ];
 
     const responses = await Promise.all(
