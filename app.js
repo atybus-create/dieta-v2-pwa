@@ -16,7 +16,8 @@
       './photo-compression.js?v=20260815-extfix1',
       './install-flow-fix.js?v=20260815-extfix1',
       './goals-calculator.js?v=20260815-extfix1',
-      './account-recovery.js?v=20260815-recovery1'
+      './account-recovery.js?v=20260815-recovery1',
+      './water-tracker.js?v=20260815-water1'
     ];
 
     const responses = await Promise.all(
