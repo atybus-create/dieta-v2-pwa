@@ -61,6 +61,12 @@
         border: 1px solid rgba(111, 194, 186, .18);
         border-radius: 11px;
         background: rgba(4, 15, 19, .42);
+        transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+      }
+      .analysis-grams-wrap.is-invalid {
+        border-color: rgba(255, 103, 120, .72);
+        background: rgba(255, 83, 103, .08);
+        box-shadow: 0 0 0 3px rgba(255, 83, 103, .08);
       }
       .analysis-grams-input {
         width: 68px;
@@ -112,6 +118,11 @@
         border-color: rgba(31, 92, 163, .14);
         background: #f5f8fb;
       }
+      #app[data-theme="light"] .analysis-grams-wrap.is-invalid {
+        border-color: rgba(189, 69, 61, .52);
+        background: rgba(189, 69, 61, .06);
+        box-shadow: 0 0 0 3px rgba(189, 69, 61, .07);
+      }
       #app[data-theme="light"] .analysis-grams-input { color: #17212b; }
       #app[data-theme="light"] .analysis-grams-unit { color: #6f7b86; }
       #app[data-theme="light"] .analysis-remove-btn {
@@ -142,6 +153,14 @@
 
   function positiveOrZero(value) {
     return Math.max(0, num(value));
+  }
+
+  function parseGrams(value) {
+    const raw = String(value ?? '').trim().replace(',', '.');
+    if (!raw) return null;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 5000) return null;
+    return Math.round(parsed * 10) / 10;
   }
 
   function getPer100(item, key100, totalKey) {
@@ -219,23 +238,52 @@
     if (kcal) kcal.textContent = `${Math.round(num(item?.calories))} kcal`;
   }
 
-  function applyGramChange(index, rawValue, row, input) {
-    if (!state.analysis || !Array.isArray(state.analysis.items)) return;
-    const item = state.analysis.items[index];
-    if (!item) return;
+  function markInputValidity(input, valid) {
+    input?.closest('.analysis-grams-wrap')?.classList.toggle('is-invalid', !valid);
+    if (input) input.setAttribute('aria-invalid', valid ? 'false' : 'true');
+  }
 
-    const parsed = Number(String(rawValue).replace(',', '.'));
-    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 5000) {
-      if (input) input.value = String(Math.round(num(item.grams) || 1));
-      if (typeof toast === 'function') toast('Gramatura musi mieścić się w zakresie 1–5000 g.');
-      return;
+  function applyGramChange(index, rawValue, row, input, { showError = true } = {}) {
+    if (!state.analysis || !Array.isArray(state.analysis.items)) return false;
+    const item = state.analysis.items[index];
+    if (!item) return false;
+
+    const parsed = parseGrams(rawValue);
+    if (parsed === null) {
+      markInputValidity(input, false);
+      if (showError && typeof toast === 'function') toast('Uzupełnij gramaturę składnika w zakresie 1–5000 g.');
+      return false;
     }
 
-    item.grams = Math.round(parsed * 10) / 10;
+    markInputValidity(input, true);
+    item.grams = parsed;
+    if (input) input.value = String(parsed);
     recalculateItem(item);
     recalculateAnalysis();
     updateItemRow(row, item);
     renderLiveTotals();
+    return true;
+  }
+
+  function validateAndCommitAllGrams({ showError = true } = {}) {
+    const inputs = [...document.querySelectorAll('#analysisItems .analysis-grams-input')];
+    if (!inputs.length) return true;
+
+    let valid = true;
+    inputs.forEach(input => {
+      const index = Number(input.dataset.analysisIndex);
+      const row = input.closest('.analysis-item');
+      if (!Number.isInteger(index) || !applyGramChange(index, input.value, row, input, { showError: false })) {
+        valid = false;
+      }
+    });
+
+    if (!valid && showError && typeof toast === 'function') {
+      toast('Uzupełnij poprawną gramaturę wszystkich składników.');
+      const firstInvalid = inputs.find(input => input.getAttribute('aria-invalid') === 'true');
+      firstInvalid?.focus();
+    }
+    return valid;
   }
 
   function decorateItems() {
@@ -270,6 +318,7 @@
       gramsInput.inputMode = 'decimal';
       gramsInput.value = String(Math.round(num(item.grams) * 10) / 10);
       gramsInput.dataset.analysisIndex = String(index);
+      gramsInput.setAttribute('aria-invalid', 'false');
 
       const gramsUnit = document.createElement('span');
       gramsUnit.className = 'analysis-grams-unit';
@@ -290,14 +339,19 @@
       button.dataset.analysisIndex = String(index);
       button.setAttribute('aria-label', `Usuń ${item.namePl || 'składnik'} z posiłku`);
 
-      let inputTimer = null;
       gramsInput.addEventListener('input', () => {
-        clearTimeout(inputTimer);
-        inputTimer = setTimeout(() => applyGramChange(index, gramsInput.value, row, gramsInput), 220);
+        const valid = parseGrams(gramsInput.value) !== null;
+        markInputValidity(gramsInput, valid);
       });
+
       gramsInput.addEventListener('change', () => {
-        clearTimeout(inputTimer);
         applyGramChange(index, gramsInput.value, row, gramsInput);
+      });
+
+      gramsInput.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        if (applyGramChange(index, gramsInput.value, row, gramsInput)) gramsInput.blur();
       });
 
       button.addEventListener('click', () => {
@@ -321,6 +375,20 @@
       row.appendChild(actions);
     });
   }
+
+  document.addEventListener('click', event => {
+    const button = event.target?.closest?.('#analysisPanel button');
+    if (!button || button.classList.contains('analysis-remove-btn')) return;
+
+    const label = String(button.textContent || '').trim().toLocaleLowerCase('pl-PL');
+    const isSaveAction = label.includes('dodaj posiłek') || label.includes('ulubion');
+    if (!isSaveAction) return;
+
+    if (!validateAndCommitAllGrams()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
 
   window.renderAnalysis = function patchedRenderAnalysis(analysis) {
     state.analysis = analysis;
