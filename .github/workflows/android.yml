@@ -142,12 +142,15 @@ jobs:
           marker = '    buildTypes {'
           if marker not in text:
               raise SystemExit('buildTypes marker not found in generated Gradle file')
-          signing = '''    signingConfigs {\n        release {\n            storeFile file('release.keystore')\n            storePassword System.getenv('KEYSTORE_PASSWORD')\n            keyAlias System.getenv('KEY_ALIAS')\n            keyPassword System.getenv('KEY_PASSWORD')\n        }\n    }\n\n'''
+          signing = '''    signingConfigs {\n        release {\n            storeFile file('release.keystore')\n            storePassword System.getenv('KEYSTORE_PASSWORD')\n            keyAlias System.getenv('KEY_ALIAS')\n            keyPassword System.getenv('KEY_PASSWORD')\n            storeType 'JKS'\n        }\n    }\n\n'''
           text = text.replace(marker, signing + marker, 1)
+          build_types_index = text.index(marker)
           release_marker = "        release {\n"
-          if release_marker not in text:
+          release_index = text.find(release_marker, build_types_index)
+          if release_index < 0:
               raise SystemExit('release buildType not found')
-          text = text.replace(release_marker, release_marker + "            signingConfig signingConfigs.release\n", 1)
+          insert_at = release_index + len(release_marker)
+          text = text[:insert_at] + "            signingConfig signingConfigs.release\n" + text[insert_at:]
           p.write_text(text)
           PY
 
