@@ -1,0 +1,82 @@
+name: iOS Capacitor build
+
+on:
+  push:
+    branches: [ios/capacitor-v1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ios:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Verify Xcode toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Prepare bundled web application
+        run: npm run build:web
+
+      - name: Generate native iOS project
+        run: npx cap add ios
+
+      - name: Configure iOS privacy descriptions
+        run: bash scripts/configure-ios.sh
+
+      - name: Generate iOS icon and splash resources
+        run: npm run native:assets:ios
+
+      - name: Sync Capacitor plugins and web assets
+        run: npx cap sync ios
+
+      - name: Re-apply iOS privacy descriptions after sync
+        run: bash scripts/configure-ios.sh
+
+      - name: Verify iOS configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f ios/App/App.xcworkspace/contents.xcworkspacedata
+          test -f ios/App/App/Info.plist
+          test -f ios/App/App/public/index.html
+          test -f ios/App/App/public/native-bootstrap.js
+          grep -R 'PRODUCT_BUNDLE_IDENTIFIER = pl.aimonitor.zywienia;' ios/App/App.xcodeproj/project.pbxproj
+          /usr/libexec/PlistBuddy -c 'Print :NSCameraUsageDescription' ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c 'Print :NSPhotoLibraryUsageDescription' ios/App/App/Info.plist
+
+      - name: Build release for iOS Simulator without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload generated iOS project
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-project-unsigned-validation
+          path: ios
+          if-no-files-found: error
+          retention-days: 7
