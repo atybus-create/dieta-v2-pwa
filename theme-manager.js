@@ -6,33 +6,23 @@
   let currentTheme = 'dark';
   let saving = false;
 
-  function profileId() {
-    return String(state?.profile?.userId || '').trim();
+  function ensureStyles() {
+    if (document.getElementById('themeLightStyles')) return;
+    const link = document.createElement('link');
+    link.id = 'themeLightStyles';
+    link.rel = 'stylesheet';
+    link.href = './theme-light.css?v=20260815-theme1';
+    document.head.appendChild(link);
   }
 
-  function storageKey() {
-    const id = profileId();
-    return id ? `${THEME_KEY_PREFIX}${id}` : '';
-  }
-
-  function localTheme() {
-    const key = storageKey();
-    if (!key) return 'dark';
-    const value = String(localStorage.getItem(key) || '').toLowerCase();
-    return VALID.has(value) ? value : 'dark';
-  }
-
-  function rememberLocal(theme) {
-    const key = storageKey();
-    if (key && VALID.has(theme)) localStorage.setItem(key, theme);
-  }
-
-  function setMetaColor(theme) {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'light' ? '#fbfaf7' : '#071014');
-  }
+  function profileId() { return String(state?.profile?.userId || '').trim(); }
+  function storageKey() { const id = profileId(); return id ? `${THEME_KEY_PREFIX}${id}` : ''; }
+  function localTheme() { const key = storageKey(); if (!key) return 'dark'; const value = String(localStorage.getItem(key) || '').toLowerCase(); return VALID.has(value) ? value : 'dark'; }
+  function rememberLocal(theme) { const key = storageKey(); if (key && VALID.has(theme)) localStorage.setItem(key, theme); }
+  function setMetaColor(theme) { const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', theme === 'light' ? '#fbfaf7' : '#071014'); }
 
   function applyTheme(theme, { remember = true } = {}) {
+    ensureStyles();
     const next = VALID.has(theme) ? theme : 'dark';
     currentTheme = next;
     const app = document.getElementById('app');
@@ -53,63 +43,31 @@
   }
 
   function updateButtons() {
-    document.querySelectorAll('[data-theme-choice]').forEach(button => {
-      const active = button.dataset.themeChoice === currentTheme;
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
+    document.querySelectorAll('[data-theme-choice]').forEach(button => button.setAttribute('aria-pressed', button.dataset.themeChoice === currentTheme ? 'true' : 'false'));
   }
 
   function ensureUi() {
+    ensureStyles();
     if (document.getElementById('themePanel')) return;
     const profile = document.getElementById('viewProfile');
     const goals = profile?.querySelector('.goals-panel');
     if (!profile || !goals) return;
-
     const panel = document.createElement('div');
     panel.id = 'themePanel';
     panel.className = 'panel glass-card theme-panel';
-    panel.innerHTML = `
-      <div class="panel-heading compact">
-        <span class="panel-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
-        </span>
-        <div>
-          <h3>Motyw aplikacji</h3>
-          <p>Wybierz wygląd używany po zalogowaniu. Ustawienie jest przypisane do Twojego profilu.</p>
-        </div>
-      </div>
-      <div class="theme-choice-grid" role="group" aria-label="Motyw aplikacji">
-        <button class="theme-choice" type="button" data-theme-choice="dark" aria-pressed="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg>
-          <span>Motyw ciemny</span>
-        </button>
-        <button class="theme-choice" type="button" data-theme-choice="light" aria-pressed="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
-          <span>Motyw jasny</span>
-        </button>
-      </div>`;
+    panel.innerHTML = `<div class="panel-heading compact"><span class="panel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg></span><div><h3>Motyw aplikacji</h3><p>Wybierz wygląd używany po zalogowaniu. Ustawienie jest przypisane do Twojego profilu.</p></div></div><div class="theme-choice-grid" role="group" aria-label="Motyw aplikacji"><button class="theme-choice" type="button" data-theme-choice="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg><span>Motyw ciemny</span></button><button class="theme-choice" type="button" data-theme-choice="light" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg><span>Motyw jasny</span></button></div>`;
     goals.insertAdjacentElement('beforebegin', panel);
-
-    panel.querySelectorAll('[data-theme-choice]').forEach(button => {
-      button.addEventListener('click', () => changeTheme(button.dataset.themeChoice));
-    });
+    panel.querySelectorAll('[data-theme-choice]').forEach(button => button.addEventListener('click', () => changeTheme(button.dataset.themeChoice)));
     updateButtons();
   }
 
   async function syncTheme() {
-    if (!state?.token || !profileId()) {
-      forceAuthDark();
-      return;
-    }
-
+    if (!state?.token || !profileId()) { forceAuthDark(); return; }
     applyTheme(localTheme(), { remember: false });
     try {
       const data = await api('theme_get');
-      const serverTheme = VALID.has(data?.uiTheme) ? data.uiTheme : 'dark';
-      applyTheme(serverTheme);
-    } catch (error) {
-      console.warn('Nie udało się zsynchronizować motywu:', error);
-    }
+      applyTheme(VALID.has(data?.uiTheme) ? data.uiTheme : 'dark');
+    } catch (error) { console.warn('Nie udało się zsynchronizować motywu:', error); }
   }
 
   async function changeTheme(theme) {
@@ -141,25 +99,11 @@
   };
 
   const baseClearSession = clearSession;
-  clearSession = function themeAwareClearSession(...args) {
-    const result = baseClearSession(...args);
-    forceAuthDark();
-    return result;
-  };
+  clearSession = function themeAwareClearSession(...args) { const result = baseClearSession(...args); forceAuthDark(); return result; };
 
   const baseLoadSettings = loadSettings;
-  loadSettings = async function themeAwareLoadSettings(...args) {
-    const result = await baseLoadSettings(...args);
-    ensureUi();
-    return result;
-  };
+  loadSettings = async function themeAwareLoadSettings(...args) { const result = await baseLoadSettings(...args); ensureUi(); return result; };
 
-  function initThemeModule() {
-    ensureUi();
-    if (state?.token && profileId()) applyTheme(localTheme(), { remember: false });
-    else forceAuthDark();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initThemeModule, { once: true });
-  else initThemeModule();
+  function initThemeModule() { ensureUi(); if (state?.token && profileId()) applyTheme(localTheme(), { remember: false }); else forceAuthDark(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initThemeModule, { once: true }); else initThemeModule();
 })();
