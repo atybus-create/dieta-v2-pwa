@@ -7,6 +7,9 @@
 */
 (async function bootstrapDietaV2() {
   try {
+    const nativeBridgeUrl =
+      './native-bootstrap.js?v=20260815-capacitor1';
+
     const modules = [
       './app-core-v13.js?v=20260815-extfix1',
       './auth-login-v2.js?v=20260815-extfix1',
@@ -26,18 +29,22 @@
     ];
 
     const responses = await Promise.all(
-      modules.map(url => fetch(url, { cache: 'no-store' }))
+      [nativeBridgeUrl, ...modules].map(url =>
+        fetch(url, { cache: 'no-store' })
+      )
     );
 
     const failed = responses.findIndex(response => !response.ok);
     if (failed !== -1) {
-      throw new Error(`Nie udało się pobrać modułu aplikacji: ${modules[failed]}`);
+      const failedUrl = [nativeBridgeUrl, ...modules][failed];
+      throw new Error(`Nie udało się pobrać modułu aplikacji: ${failedUrl}`);
     }
 
     const texts = await Promise.all(responses.map(response => response.text()));
-    let core = texts[0];
-    const authOverride = texts[1];
-    const extensions = texts.slice(2);
+    const nativeBridge = texts[0];
+    let core = texts[1];
+    const authOverride = texts[2];
+    const extensions = texts.slice(3);
 
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
     core = core.replace(oldInitHook, '');
@@ -45,6 +52,8 @@
     const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
 
     (0, eval)(
+      nativeBridge +
+      '\n' +
       core +
       '\n' +
       authOverride +
