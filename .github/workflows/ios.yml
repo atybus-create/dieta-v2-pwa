@@ -56,7 +56,7 @@ jobs:
           test -f ios/App/App/Info.plist
           test -f ios/App/App/public/index.html
           test -f ios/App/App/public/native-bootstrap.js
-          grep -R 'PRODUCT_BUNDLE_IDENTIFIER = pl.aimonitor.zywienia;' ios/App/App.xcodeproj/project.pbxproj
+          grep -R -F 'pl.aimonitor.zywienia' ios/App/App.xcodeproj/project.pbxproj
           /usr/libexec/PlistBuddy -c 'Print :NSCameraUsageDescription' ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c 'Print :NSPhotoLibraryUsageDescription' ios/App/App/Info.plist
 
