@@ -19,7 +19,8 @@
       './account-recovery.js?v=20260815-recovery1',
       './water-tracker.js?v=20260815-water1',
       './water-compat.js?v=20260815-water2',
-      './water-performance.js?v=20260815-water3'
+      './water-performance.js?v=20260815-water3',
+      './hydration-display.js?v=20260815-hydration1'
     ];
 
     const responses = await Promise.all(
@@ -39,9 +40,6 @@
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
     core = core.replace(oldInitHook, '');
 
-    // Rejestrujemy start rdzenia przed rozszerzeniami, tak jak w poprzednim
-    // układzie zwykłych skryptów defer. Gdy DOM jest już gotowy, init rusza
-    // od razu, a rozszerzenia inicjalizują się zaraz po nim.
     const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
 
     (0, eval)(
