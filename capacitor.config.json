@@ -1,0 +1,10 @@
+{
+  "appId": "pl.aimonitor.zywienia",
+  "appName": "AI Monitor żywienia",
+  "webDir": "www",
+  "backgroundColor": "#071014",
+  "android": {
+    "backgroundColor": "#071014",
+    "allowMixedContent": false
+  }
+}
