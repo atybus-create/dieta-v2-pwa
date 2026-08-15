@@ -18,7 +18,8 @@
       './goals-calculator.js?v=20260815-extfix1',
       './account-recovery.js?v=20260815-recovery1',
       './water-tracker.js?v=20260815-water1',
-      './water-compat.js?v=20260815-water2'
+      './water-compat.js?v=20260815-water2',
+      './water-performance.js?v=20260815-water3'
     ];
 
     const responses = await Promise.all(
