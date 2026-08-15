@@ -8,8 +8,10 @@
     const card = byId('waterCard');
     if (!card) return;
 
+    const title = card.querySelector('.water-title');
+    if (title) title.textContent = 'Nawodnienie';
     const sub = card.querySelector('.water-sub');
-    if (sub) sub.textContent = 'Woda + płyny z posiłków';
+    if (sub) sub.textContent = 'Woda + napoje zapisane w posiłkach';
 
     if (!byId('waterBreakdown')) {
       const copy = card.querySelector('.water-progress-copy');
@@ -41,12 +43,15 @@
 
     const breakdown = byId('waterBreakdown');
     if (breakdown) breakdown.textContent = `woda ${plainWaterMl} ml · z posiłków ${mealFluidsMl} ml`;
+    if (byId('waterUndoBtn')) byId('waterUndoBtn').disabled = plainWaterMl < 250;
   }
 
   const baseApiForHydration = api;
   api = async function hydrationAwareApi(action, payload = {}, file = null) {
     const response = await baseApiForHydration(action, payload, file);
-    if (action === 'dashboard' && response?.water) applyWaterBreakdown(response.water);
+    if (action === 'dashboard' && response?.water) {
+      setTimeout(() => applyWaterBreakdown(response.water), 0);
+    }
     return response;
   };
 
