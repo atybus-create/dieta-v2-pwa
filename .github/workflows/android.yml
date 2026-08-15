@@ -1,0 +1,185 @@
+name: Android Capacitor build
+
+on:
+  push:
+    branches: [android/capacitor-v1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Prepare bundled web application
+        run: npm run build:web
+
+      - name: Generate native Android project
+        run: npx cap add android
+
+      - name: Generate adaptive icon and splash resources
+        run: npm run native:assets
+
+      - name: Sync Capacitor plugins and web assets
+        run: npx cap sync android
+
+      - name: Verify native configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -R 'applicationId "pl.aimonitor.zywienia"' android/app/build.gradle
+          grep -R 'versionCode 1' android/app/build.gradle
+          grep -R 'versionName "1.0"' android/app/build.gradle
+          test -f android/app/src/main/assets/public/index.html
+          test -f android/app/src/main/assets/public/native-bootstrap.js
+          if grep -R -E 'android.permission.(CAMERA|READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|ACCESS_FINE_LOCATION|RECORD_AUDIO)' android/app/src/main/AndroidManifest.xml; then
+            echo 'Unexpected sensitive Android permission found.' >&2
+            exit 1
+          fi
+
+      - name: Build release packages without signing material
+        working-directory: android
+        run: ./gradlew assembleRelease bundleRelease
+
+      - name: Upload generated Android project
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-project-unsigned-validation
+          path: android
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload unsigned validation outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unsigned-validation
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 7
+
+  signed-release:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Check signing material
+        id: signing
+        shell: bash
+        run: |
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Release signing secrets are not configured; signed APK/AAB will not be produced.'
+          fi
+
+      - uses: actions/checkout@v6
+        if: steps.signing.outputs.ready == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package.json
+
+      - uses: actions/setup-java@v4
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies and generate Android project
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          npm run build:web
+          npx cap add android
+          npm run native:assets
+          npx cap sync android
+
+      - name: Restore release keystore
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/release.keystore
+          chmod 600 android/app/release.keystore
+
+      - name: Configure release signing
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle')
+          text = p.read_text()
+          marker = '    buildTypes {'
+          if marker not in text:
+              raise SystemExit('buildTypes marker not found in generated Gradle file')
+          signing = '''    signingConfigs {\n        release {\n            storeFile file('release.keystore')\n            storePassword System.getenv('KEYSTORE_PASSWORD')\n            keyAlias System.getenv('KEY_ALIAS')\n            keyPassword System.getenv('KEY_PASSWORD')\n        }\n    }\n\n'''
+          text = text.replace(marker, signing + marker, 1)
+          release_marker = "        release {\n"
+          if release_marker not in text:
+              raise SystemExit('release buildType not found')
+          text = text.replace(release_marker, release_marker + "            signingConfig signingConfigs.release\n", 1)
+          p.write_text(text)
+          PY
+
+      - name: Build signed release APK and AAB
+        if: steps.signing.outputs.ready == 'true'
+        working-directory: android
+        run: ./gradlew assembleRelease bundleRelease
+
+      - name: Verify package metadata and signatures
+        if: steps.signing.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find android/app/build/outputs/apk/release -name '*.apk' -print -quit)"
+          AAB="$(find android/app/build/outputs/bundle/release -name '*.aab' -print -quit)"
+          test -n "$APK"
+          test -n "$AAB"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          jarsigner -verify -strict "$AAB"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)"
+          "$AAPT" dump badging "$APK" | tee android/release-badging.txt
+          grep "package: name='pl.aimonitor.zywienia' versionCode='1' versionName='1.0'" android/release-badging.txt
+
+      - name: Upload signed release packages
+        if: steps.signing.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-monitor-zywienia-signed-release
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+            android/release-badging.txt
+          if-no-files-found: error
+          retention-days: 30
