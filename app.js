@@ -11,7 +11,7 @@
       './app-core-v13.js?v=20260815-extfix1',
       './auth-login-v2.js?v=20260815-extfix1',
       './confirm-modal.js?v=20260815-extfix1',
-      './analysis-item-removal.js?v=20260815-grams1',
+      './analysis-item-removal.js?v=20260815-grams2',
       './analysis-cancel.js?v=20260815-extfix1',
       './photo-compression.js?v=20260815-extfix1',
       './install-flow-fix.js?v=20260815-extfix1',
