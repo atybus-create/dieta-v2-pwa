@@ -1,0 +1,21 @@
+{
+  "name": "ai-monitor-zywienia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Monitor żywienia - web frontend packaged as a native Android app with Capacitor.",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "native:android:init": "npm run build:web && npx cap add android",
+    "native:android:sync": "npm run build:web && npx cap sync android",
+    "native:assets": "npx @capacitor/assets generate --android --iconBackgroundColor '#071014' --iconBackgroundColorDark '#071014' --splashBackgroundColor '#071014' --splashBackgroundColorDark '#071014'"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.4.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.4.2"
+  }
+}
