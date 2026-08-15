@@ -1,12 +1,14 @@
 const CACHE =
-  'ai-monitor-zywienia-20260814-13';
+  'ai-monitor-zywienia-20260815-theme1';
 
 
 const SHELL = [
   './',
   './index.html',
   './styles.css?v=20260814-13',
-  './app.js?v=20260814-13',
+  './app.js?v=20260815-theme1',
+  './theme-manager.js?v=20260815-theme1',
+  './theme-light.css?v=20260815-theme1',
   './manifest.webmanifest?v=20260814-13',
   './icon.svg?v=20260814-13',
   './icon-192.png?v=20260814-13',
@@ -91,10 +93,6 @@ self.addEventListener(
       );
 
 
-    /*
-      API n8n pozostaje poza cache PWA.
-    */
-
     if (
       url.origin !==
       self.location.origin
@@ -102,11 +100,6 @@ self.addEventListener(
       return;
     }
 
-
-    /*
-      Nawigacja:
-      najpierw sieć, offline fallback do shell.
-    */
 
     if (
       request.mode === 'navigate'
@@ -154,11 +147,6 @@ self.addEventListener(
       return;
     }
 
-
-    /*
-      Assety:
-      network first.
-    */
 
     event.respondWith(
       fetch(
