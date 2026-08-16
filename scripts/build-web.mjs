@@ -19,6 +19,7 @@ const files = [
   'water-performance.js',
   'hydration-display.js',
   'history-hydration.js',
+  'day-refresh.js',
   'theme-manager.js',
   'native-bootstrap.js',
   'manifest.webmanifest',
