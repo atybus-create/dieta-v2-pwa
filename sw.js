@@ -1,5 +1,5 @@
 const CACHE =
-  'ai-monitor-zywienia-20260815-theme1';
+  'ai-monitor-zywienia-20260816-recovery2';
 
 
 const SHELL = [
@@ -7,6 +7,7 @@ const SHELL = [
   './index.html',
   './styles.css?v=20260814-13',
   './app.js?v=20260815-theme1',
+  './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
   './manifest.webmanifest?v=20260814-13',
@@ -178,13 +179,13 @@ self.addEventListener(
 
           }
         )
-        .catch(
-          () =>
-            caches.match(
-              request
-            )
-        )
-    );
+          .catch(
+            () =>
+              caches.match(
+                request
+              )
+          )
+      );
 
   }
 );
