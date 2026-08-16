@@ -18,8 +18,10 @@
 
     const camera = capacitor.Plugins?.Camera;
     if (!camera?.getPhoto) {
-      console.warn('Native camera plugin unavailable; falling back to file input.');
-      input.click();
+      console.error('Native camera plugin unavailable.');
+      if (typeof window.toast === 'function') {
+        window.toast('Nie udało się uruchomić aparatu.');
+      }
       return;
     }
 
@@ -28,8 +30,8 @@
         quality: 90,
         allowEditing: false,
         resultType: 'uri',
-        source: 'camera',
-        direction: 'rear',
+        source: 'CAMERA',
+        direction: 'REAR',
         correctOrientation: true,
         saveToGallery: false
       });
