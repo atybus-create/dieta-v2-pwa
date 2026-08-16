@@ -22,10 +22,10 @@ if old_code not in text:
 if old_name not in text:
     raise SystemExit('Expected versionName 1.0 not found')
 
-text = text.replace(old_code, 'versionCode 3', 1)
-text = text.replace(old_name, 'versionName "1.0.2"', 1)
+text = text.replace(old_code, 'versionCode 4', 1)
+text = text.replace(old_name, 'versionName "1.0.3"', 1)
 p.write_text(text)
 PY
 
-grep -F 'versionCode 3' "$GRADLE_FILE"
-grep -F 'versionName "1.0.2"' "$GRADLE_FILE"
+grep -F 'versionCode 4' "$GRADLE_FILE"
+grep -F 'versionName "1.0.3"' "$GRADLE_FILE"
