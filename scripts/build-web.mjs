@@ -11,6 +11,7 @@ const files = [
   'analysis-item-removal.js',
   'analysis-cancel.js',
   'photo-compression.js',
+  'native-camera.js',
   'install-flow-fix.js',
   'goals-calculator.js',
   'account-recovery.js',
