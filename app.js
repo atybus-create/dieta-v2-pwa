@@ -25,8 +25,8 @@
       './water-performance.js?v=20260815-water3',
       './hydration-display.js?v=20260815-hydration1',
       './history-hydration.js?v=20260815-history-hydration1',
-      './day-refresh.js?v=20260816-refresh1',
-      './theme-manager.js?v=20260815-theme1'
+      './theme-manager.js?v=20260816-theme2',
+      './day-refresh.js?v=20260816-refresh2'
     ];
 
     const responses = await Promise.all(
@@ -46,11 +46,16 @@
     let core = texts[1];
     const authOverride = texts[2];
     const extensions = texts.slice(3);
+    const extensionUrls = modules.slice(2);
 
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
     core = core.replace(oldInitHook, '');
 
     const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
+
+    const isolatedExtensions = extensions
+      .map((code, index) => `\ntry {\n${code}\n} catch (error) {\n  console.error('Dieta V2 extension failed: ${extensionUrls[index]}', error);\n}\n`)
+      .join('\n');
 
     (0, eval)(
       nativeBridge +
@@ -59,8 +64,7 @@
       '\n' +
       authOverride +
       startOnce +
-      '\n' +
-      extensions.join('\n')
+      isolatedExtensions
     );
   } catch (error) {
     console.error('Dieta V2 bootstrap error:', error);
