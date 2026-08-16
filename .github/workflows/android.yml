@@ -40,15 +40,19 @@ jobs:
       - name: Sync Capacitor plugins and web assets
         run: npx cap sync android
 
+      - name: Configure Android version
+        run: bash scripts/configure-android-version.sh
+
       - name: Verify native configuration
         shell: bash
         run: |
           set -euo pipefail
           grep -R 'applicationId "pl.aimonitor.zywienia"' android/app/build.gradle
-          grep -R 'versionCode 1' android/app/build.gradle
-          grep -R 'versionName "1.0"' android/app/build.gradle
+          grep -R 'versionCode 2' android/app/build.gradle
+          grep -R 'versionName "1.0.1"' android/app/build.gradle
           test -f android/app/src/main/assets/public/index.html
           test -f android/app/src/main/assets/public/native-bootstrap.js
+          test -f android/app/src/main/assets/public/day-refresh.js
           if grep -R -E 'android.permission.(CAMERA|READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|ACCESS_FINE_LOCATION|RECORD_AUDIO)' android/app/src/main/AndroidManifest.xml; then
             echo 'Unexpected sensitive Android permission found.' >&2
             exit 1
@@ -61,7 +65,7 @@ jobs:
       - name: Upload generated Android project
         uses: actions/upload-artifact@v4
         with:
-          name: android-project-unsigned-validation
+          name: android-project-unsigned-validation-v1.0.1
           path: android
           if-no-files-found: error
           retention-days: 7
@@ -69,7 +73,7 @@ jobs:
       - name: Upload unsigned validation outputs
         uses: actions/upload-artifact@v4
         with:
-          name: android-unsigned-validation
+          name: android-unsigned-validation-v1.0.1
           path: |
             android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
@@ -121,6 +125,7 @@ jobs:
           npx cap add android
           npm run native:assets
           npx cap sync android
+          bash scripts/configure-android-version.sh
 
       - name: Restore release keystore
         if: steps.signing.outputs.ready == 'true'
@@ -173,13 +178,13 @@ jobs:
           jarsigner -verify "$AAB"
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)"
           "$AAPT" dump badging "$APK" | tee android/release-badging.txt
-          grep "package: name='pl.aimonitor.zywienia' versionCode='1' versionName='1.0'" android/release-badging.txt
+          grep "package: name='pl.aimonitor.zywienia' versionCode='2' versionName='1.0.1'" android/release-badging.txt
 
       - name: Upload signed release packages
         if: steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ai-monitor-zywienia-signed-release
+          name: ai-monitor-zywienia-v1.0.1-signed-release
           path: |
             android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
