@@ -25,6 +25,7 @@
       './water-performance.js?v=20260815-water3',
       './hydration-display.js?v=20260815-hydration1',
       './history-hydration.js?v=20260815-history-hydration1',
+      './day-refresh.js?v=20260816-refresh1',
       './theme-manager.js?v=20260815-theme1'
     ];
 
