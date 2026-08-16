@@ -8,8 +8,8 @@
 (async function bootstrapDietaV2() {
   try {
     const modules = [
-      './app-core-v13.js?v=20260815-extfix1',
-      './auth-login-v2.js?v=20260815-extfix1',
+      './app-core-v13.js?v=20260816-pwalogin1',
+      './auth-login-v2.js?v=20260816-pwalogin1',
       './confirm-modal.js?v=20260815-extfix1',
       './analysis-item-removal.js?v=20260815-grams2',
       './analysis-cancel.js?v=20260815-extfix1',
@@ -23,7 +23,8 @@
       './water-performance.js?v=20260815-water3',
       './hydration-display.js?v=20260815-hydration1',
       './history-hydration.js?v=20260815-history-hydration1',
-      './theme-manager.js?v=20260815-theme1'
+      './theme-manager.js?v=20260815-theme1',
+      './pwa-login-safety.js?v=20260816-pwalogin1'
     ];
 
     const responses = await Promise.all(
@@ -39,19 +40,23 @@
     let core = texts[0];
     const authOverride = texts[1];
     const extensions = texts.slice(2);
+    const extensionUrls = modules.slice(2);
 
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
     core = core.replace(oldInitHook, '');
 
     const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
 
+    const isolatedExtensions = extensions
+      .map((code, index) => `\ntry {\n${code}\n} catch (error) {\n  console.error('Dieta V2 extension failed: ${extensionUrls[index]}', error);\n}\n`)
+      .join('\n');
+
     (0, eval)(
       core +
       '\n' +
       authOverride +
       startOnce +
-      '\n' +
-      extensions.join('\n')
+      isolatedExtensions
     );
   } catch (error) {
     console.error('Dieta V2 bootstrap error:', error);
