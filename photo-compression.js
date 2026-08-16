@@ -63,6 +63,19 @@
     }
   }
 
+  async function prepareAndAnalyzePhoto(file) {
+    const optimized = await optimizePhoto(file);
+    if (typeof window.analyzePhoto === 'function') {
+      await window.analyzePhoto(optimized);
+    } else if (typeof analyzePhoto === 'function') {
+      await analyzePhoto(optimized);
+    } else {
+      throw new Error('Brak funkcji analizy zdjęcia.');
+    }
+  }
+
+  window.__prepareAndAnalyzePhoto = prepareAndAnalyzePhoto;
+
   document.addEventListener('change', async event => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement) || input.id !== 'photoInput') return;
@@ -74,14 +87,7 @@
     event.stopImmediatePropagation();
 
     try {
-      const optimized = await optimizePhoto(file);
-      if (typeof window.analyzePhoto === 'function') {
-        await window.analyzePhoto(optimized);
-      } else if (typeof analyzePhoto === 'function') {
-        await analyzePhoto(optimized);
-      } else {
-        throw new Error('Brak funkcji analizy zdjęcia.');
-      }
+      await prepareAndAnalyzePhoto(file);
     } catch (error) {
       console.error('Photo compression bridge failed.', error);
       if (typeof window.toast === 'function') {
