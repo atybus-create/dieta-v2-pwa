@@ -48,8 +48,8 @@ jobs:
         run: |
           set -euo pipefail
           grep -R 'applicationId "pl.aimonitor.zywienia"' android/app/build.gradle
-          grep -R 'versionCode 3' android/app/build.gradle
-          grep -R 'versionName "1.0.2"' android/app/build.gradle
+          grep -R 'versionCode 4' android/app/build.gradle
+          grep -R 'versionName "1.0.3"' android/app/build.gradle
 
           PUBLIC_DIR='android/app/src/main/assets/public'
           modules=(
@@ -61,6 +61,7 @@ jobs:
             analysis-item-removal.js
             analysis-cancel.js
             photo-compression.js
+            native-camera.js
             install-flow-fix.js
             goals-calculator.js
             account-recovery.js
@@ -81,17 +82,25 @@ jobs:
             }
           done
 
+          grep -F "'./photo-compression.js?v=20260816-camera1'" "$PUBLIC_DIR/app.js"
+          grep -F "'./native-camera.js?v=20260816-camera1'" "$PUBLIC_DIR/app.js"
           grep -F "'./theme-manager.js?v=20260816-theme2'" "$PUBLIC_DIR/app.js"
           grep -F "'./day-refresh.js?v=20260816-refresh2'" "$PUBLIC_DIR/app.js"
 
+          photo_line="$(grep -n -F "'./photo-compression.js?v=20260816-camera1'" "$PUBLIC_DIR/app.js" | head -1 | cut -d: -f1)"
+          camera_line="$(grep -n -F "'./native-camera.js?v=20260816-camera1'" "$PUBLIC_DIR/app.js" | head -1 | cut -d: -f1)"
           theme_line="$(grep -n -F "'./theme-manager.js?v=20260816-theme2'" "$PUBLIC_DIR/app.js" | head -1 | cut -d: -f1)"
           refresh_line="$(grep -n -F "'./day-refresh.js?v=20260816-refresh2'" "$PUBLIC_DIR/app.js" | head -1 | cut -d: -f1)"
+          test "$photo_line" -lt "$camera_line" || {
+            echo 'Photo preparation module must load before native camera module.' >&2
+            exit 1
+          }
           test "$theme_line" -lt "$refresh_line" || {
             echo 'Theme module must load before day refresh module.' >&2
             exit 1
           }
 
-          if grep -R -E 'android.permission.(CAMERA|READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|ACCESS_FINE_LOCATION|RECORD_AUDIO)' android/app/src/main/AndroidManifest.xml; then
+          if grep -R -E 'android.permission.(READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|ACCESS_FINE_LOCATION|RECORD_AUDIO)' android/app/src/main/AndroidManifest.xml; then
             echo 'Unexpected sensitive Android permission found.' >&2
             exit 1
           fi
@@ -103,7 +112,7 @@ jobs:
       - name: Upload generated Android project
         uses: actions/upload-artifact@v4
         with:
-          name: android-project-unsigned-validation-v1.0.2
+          name: android-project-unsigned-validation-v1.0.3
           path: android
           if-no-files-found: error
           retention-days: 7
@@ -111,7 +120,7 @@ jobs:
       - name: Upload unsigned validation outputs
         uses: actions/upload-artifact@v4
         with:
-          name: android-unsigned-validation-v1.0.2
+          name: android-unsigned-validation-v1.0.3
           path: |
             android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
@@ -216,13 +225,13 @@ jobs:
           jarsigner -verify "$AAB"
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)"
           "$AAPT" dump badging "$APK" | tee android/release-badging.txt
-          grep "package: name='pl.aimonitor.zywienia' versionCode='3' versionName='1.0.2'" android/release-badging.txt
+          grep "package: name='pl.aimonitor.zywienia' versionCode='4' versionName='1.0.3'" android/release-badging.txt
 
       - name: Upload signed release packages
         if: steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ai-monitor-zywienia-v1.0.2-signed-release
+          name: ai-monitor-zywienia-v1.0.3-signed-release
           path: |
             android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
