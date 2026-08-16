@@ -1,6 +1,6 @@
 {
   "name": "ai-monitor-zywienia",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "AI Monitor żywienia - web frontend packaged as a native Android app with Capacitor.",
   "scripts": {
