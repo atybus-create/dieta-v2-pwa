@@ -1,12 +1,13 @@
 const CACHE =
-  'ai-monitor-zywienia-20260816-recovery2';
+  'ai-monitor-zywienia-20260816-pwalogin1';
 
 
 const SHELL = [
   './',
   './index.html',
   './styles.css?v=20260814-13',
-  './app.js?v=20260815-theme1',
+  './app.js?v=20260816-pwalogin1',
+  './pwa-login-safety.js?v=20260816-pwalogin1',
   './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
