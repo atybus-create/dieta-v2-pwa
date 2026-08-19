@@ -27,6 +27,7 @@
       './theme-manager.js?v=20260815-theme1',
       './dashboard-layout-v2.js?v=20260819-rootfix2',
       './dashboard-expand.js?v=20260819-detail3',
+      './favorites-editor.js?v=20260819-favorites1',
       './pwa-login-safety.js?v=20260816-pwalogin1'
     ];
 
