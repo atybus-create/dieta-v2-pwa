@@ -12,5 +12,5 @@
   };
 
   loadCss('dashboard-layout-v2-css', './dashboard-layout-v2.css?v=20260819-dashboard4');
-  loadCss('dashboard-card-hotfix-css', './dashboard-card-hotfix.css?v=20260819-hotfix1');
+  loadCss('dashboard-card-hotfix-css', './dashboard-card-hotfix.css?v=20260819-rootfix2');
 })();
