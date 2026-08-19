@@ -37,9 +37,13 @@
     }
 
     const texts = await Promise.all(responses.map(response => response.text()));
-    let core = texts[0];
-    const authOverride = texts[1];
-    const extensions = texts.slice(2);
+    const oldBackendBase = 'https://n8n-pi.taild8d05f.ts.net';
+    const backendBase = 'https://atybus-primary.taild8d05f.ts.net';
+    const routedTexts = texts.map(code => code.split(oldBackendBase).join(backendBase));
+
+    let core = routedTexts[0];
+    const authOverride = routedTexts[1];
+    const extensions = routedTexts.slice(2);
     const extensionUrls = modules.slice(2);
 
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
