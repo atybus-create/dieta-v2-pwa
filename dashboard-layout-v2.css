@@ -29,297 +29,76 @@
   opacity: .45;
 }
 
-#viewToday .calorie-card > * {
-  position: relative;
-  z-index: 1;
-}
+#viewToday .calorie-card > * { position: relative; z-index: 1; }
+#viewToday .calorie-card .summary-label { color: #9ee940; font-weight: 850; letter-spacing: .075em; text-transform: uppercase; }
+#viewToday .calorie-card .kcal-main strong { font-size: clamp(58px, 13vw, 78px); line-height: .95; letter-spacing: -.055em; }
+#viewToday .calorie-card .kcal-main span { font-size: 18px; color: var(--text-soft); }
+#viewToday .calorie-card .calorie-ring { transform: scale(1.07); }
+#viewToday .calorie-card .progress-lg { height: 12px; border-radius: 999px; background: rgba(163, 184, 170, .13); }
+#viewToday .calorie-card .progress-lg > div { background: linear-gradient(90deg, #b8ef35, #70c928); box-shadow: 0 0 15px rgba(142, 217, 54, .26); }
+#viewToday .calorie-card .remaining-row { margin-top: 13px; }
 
-#viewToday .calorie-card .summary-label {
-  color: #9ee940;
-  font-weight: 850;
-  letter-spacing: .075em;
-  text-transform: uppercase;
-}
-
-#viewToday .calorie-card .kcal-main strong {
-  font-size: clamp(58px, 13vw, 78px);
-  line-height: .95;
-  letter-spacing: -.055em;
-}
-
-#viewToday .calorie-card .kcal-main span {
-  font-size: 18px;
-  color: var(--text-soft);
-}
-
-#viewToday .calorie-card .calorie-ring {
-  transform: scale(1.07);
-}
-
-#viewToday .calorie-card .progress-lg {
-  height: 12px;
-  border-radius: 999px;
-  background: rgba(163, 184, 170, .13);
-}
-
-#viewToday .calorie-card .progress-lg > div {
-  background: linear-gradient(90deg, #b8ef35, #70c928);
-  box-shadow: 0 0 15px rgba(142, 217, 54, .26);
-}
-
-#viewToday .calorie-card .remaining-row {
-  margin-top: 13px;
-}
-
-/* One compact macro section split into three equal columns */
 #viewToday .macro-grid {
-  position: relative;
-  margin-top: 15px;
-  padding: 52px 8px 10px;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 0 !important;
-  border: 1px solid var(--line);
-  border-radius: 25px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(138, 92, 246, .09), transparent 30%),
-    linear-gradient(145deg, rgba(17,34,41,.95), rgba(10,24,29,.95));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.025),
-    0 18px 54px rgba(0,0,0,.18);
-  backdrop-filter: blur(18px);
+  position: relative; margin-top: 15px; padding: 52px 8px 10px; display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0 !important;
+  border: 1px solid var(--line); border-radius: 25px; overflow: hidden;
+  background: radial-gradient(circle at 12% 0%, rgba(138, 92, 246, .09), transparent 30%), linear-gradient(145deg, rgba(17,34,41,.95), rgba(10,24,29,.95));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 18px 54px rgba(0,0,0,.18); backdrop-filter: blur(18px);
 }
-
-#viewToday .macro-grid::before {
-  content: "Makroelementy";
-  position: absolute;
-  left: 20px;
-  top: 18px;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 850;
-  letter-spacing: .085em;
-  text-transform: uppercase;
-}
-
-#viewToday .macro-grid .macro-card {
-  min-width: 0;
-  min-height: 142px !important;
-  padding: 8px 12px 12px !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  align-items: stretch;
-  justify-content: flex-start;
-}
-
-#viewToday .macro-grid .macro-card + .macro-card {
-  border-left: 1px solid rgba(148,190,190,.14) !important;
-}
-
-#viewToday .macro-grid .macro-card-top {
-  display: block;
-}
-
-#viewToday .macro-grid .macro-heading {
-  display: block;
-  text-align: center;
-}
-
-#viewToday .macro-grid .macro-icon {
-  display: none !important;
-}
-
-#viewToday .macro-grid .macro-name {
-  min-height: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 850;
-  line-height: 1.15;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-}
-
+#viewToday .macro-grid::before { content: "Makroelementy"; position: absolute; left: 20px; top: 18px; color: var(--text); font-size: 14px; font-weight: 850; letter-spacing: .085em; text-transform: uppercase; }
+#viewToday .macro-grid .macro-card { min-width: 0; min-height: 142px !important; padding: 8px 12px 12px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; align-items: stretch; justify-content: flex-start; }
+#viewToday .macro-grid .macro-card + .macro-card { border-left: 1px solid rgba(148,190,190,.14) !important; }
+#viewToday .macro-grid .macro-card-top { display: block; }
+#viewToday .macro-grid .macro-heading { display: block; text-align: center; }
+#viewToday .macro-grid .macro-icon { display: none !important; }
+#viewToday .macro-grid .macro-name { min-height: 35px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 850; line-height: 1.15; text-transform: uppercase; letter-spacing: .03em; }
 #viewToday .macro-grid .macro-protein .macro-name { color: #8be443; }
 #viewToday .macro-grid .macro-fat .macro-name { color: #f1b22e; }
 #viewToday .macro-grid .macro-carbs .macro-name { color: #4aa8ff; }
+#viewToday .macro-grid .macro-heading small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; font-weight: 600; white-space: nowrap; }
+#viewToday .macro-grid .macro-ring { width: auto !important; height: auto !important; margin: 7px auto 0; background: none !important; }
+#viewToday .macro-grid .macro-ring .progress-ring-inner { width: auto !important; height: auto !important; min-width: 0 !important; min-height: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+#viewToday .macro-grid .macro-ring strong { font-size: 15px; line-height: 1; }
+#viewToday .macro-grid .macro-ring small { display: none !important; }
+#viewToday .macro-grid .macro-value { margin-top: 7px; justify-content: center; text-align: center; }
+#viewToday .macro-grid .macro-value b { font-size: clamp(25px, 6.5vw, 34px); letter-spacing: -.04em; }
+#viewToday .macro-grid .macro-value span { font-size: 14px; }
+#viewToday .macro-grid .mini-progress { width: 78%; height: 6px; margin: 10px auto 0; border-radius: 999px; }
+#viewToday .hydration-card, #viewToday [class*="hydration"][class*="card"] { margin-top: 15px; }
 
-#viewToday .macro-grid .macro-heading small {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
+#app[data-theme="light"] #viewToday .calorie-card { border-color: rgba(104, 190, 31, .48); background: radial-gradient(circle at 88% 18%, rgba(140, 214, 52, .15), transparent 31%), radial-gradient(circle at 14% 105%, rgba(82, 182, 121, .06), transparent 42%), linear-gradient(145deg, #ffffff, #f7faf5); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 18px 45px rgba(33, 50, 44, .10), 0 0 0 1px rgba(114, 194, 38, .04); }
+#app[data-theme="light"] #viewToday .calorie-card .summary-label { color: #49aa24; }
+#app[data-theme="light"] #viewToday .calorie-card .kcal-main span { color: #5f6865; }
+#app[data-theme="light"] #viewToday .macro-grid { border-color: rgba(31, 58, 58, .10); background: radial-gradient(circle at 12% 0%, rgba(138, 92, 246, .055), transparent 30%), linear-gradient(145deg, #ffffff, #fbfcfc); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 16px 38px rgba(34, 54, 57, .08); }
+#app[data-theme="light"] #viewToday .macro-grid::before { color: #1f2a2c; }
+#app[data-theme="light"] #viewToday .macro-grid .macro-card + .macro-card { border-left-color: rgba(42, 64, 68, .12) !important; }
+#app[data-theme="light"] #viewToday .macro-grid .macro-heading small { color: #788589; }
 
-#viewToday .macro-grid .macro-ring {
-  width: auto !important;
-  height: auto !important;
-  margin: 7px auto 0;
-  background: none !important;
-}
-
-#viewToday .macro-grid .macro-ring .progress-ring-inner {
-  width: auto !important;
-  height: auto !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
-}
-
-#viewToday .macro-grid .macro-ring strong {
-  font-size: 15px;
-  line-height: 1;
-}
-
-#viewToday .macro-grid .macro-ring small {
-  display: none !important;
-}
-
-#viewToday .macro-grid .macro-value {
-  margin-top: 7px;
-  justify-content: center;
-  text-align: center;
-}
-
-#viewToday .macro-grid .macro-value b {
-  font-size: clamp(25px, 6.5vw, 34px);
-  letter-spacing: -.04em;
-}
-
-#viewToday .macro-grid .macro-value span {
-  font-size: 14px;
-}
-
-#viewToday .macro-grid .mini-progress {
-  width: 78%;
-  height: 6px;
-  margin: 10px auto 0;
-  border-radius: 999px;
-}
-
-/* Keep hydration visually separate and calm underneath */
-#viewToday .hydration-card,
-#viewToday [class*="hydration"][class*="card"] {
-  margin-top: 15px;
-}
-
-/* Light theme counterpart */
-#app[data-theme="light"] #viewToday .calorie-card {
-  border-color: rgba(104, 190, 31, .48);
-  background:
-    radial-gradient(circle at 88% 18%, rgba(140, 214, 52, .15), transparent 31%),
-    radial-gradient(circle at 14% 105%, rgba(82, 182, 121, .06), transparent 42%),
-    linear-gradient(145deg, #ffffff, #f7faf5);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.9),
-    0 18px 45px rgba(33, 50, 44, .10),
-    0 0 0 1px rgba(114, 194, 38, .04);
-}
-
-#app[data-theme="light"] #viewToday .calorie-card .summary-label {
-  color: #49aa24;
-}
-
-#app[data-theme="light"] #viewToday .calorie-card .kcal-main span {
-  color: #5f6865;
-}
-
-#app[data-theme="light"] #viewToday .macro-grid {
-  border-color: rgba(31, 58, 58, .10);
-  background:
-    radial-gradient(circle at 12% 0%, rgba(138, 92, 246, .055), transparent 30%),
-    linear-gradient(145deg, #ffffff, #fbfcfc);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.9),
-    0 16px 38px rgba(34, 54, 57, .08);
-}
-
-#app[data-theme="light"] #viewToday .macro-grid::before {
-  color: #1f2a2c;
-}
-
-#app[data-theme="light"] #viewToday .macro-grid .macro-card + .macro-card {
-  border-left-color: rgba(42, 64, 68, .12) !important;
-}
-
-#app[data-theme="light"] #viewToday .macro-grid .macro-heading small {
-  color: #788589;
-}
-
-/* Responsive tightening for phones */
 @media (max-width: 620px) {
+  /* On phones the card follows its content instead of inheriting the tall desktop composition. */
   #viewToday .calorie-card {
-    min-height: 255px;
-    padding: 22px 20px 20px;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 20px 20px 18px;
   }
-
-  #viewToday .calorie-card .kcal-main strong {
-    font-size: clamp(52px, 15vw, 68px);
-  }
-
-  #viewToday .calorie-card .calorie-ring {
-    transform: scale(.94);
-  }
-
-  #viewToday .macro-grid {
-    padding: 48px 4px 8px;
-  }
-
-  #viewToday .macro-grid::before {
-    left: 16px;
-    top: 16px;
-    font-size: 13px;
-  }
-
-  #viewToday .macro-grid .macro-card {
-    min-height: 132px !important;
-    padding: 7px 6px 10px !important;
-  }
-
-  #viewToday .macro-grid .macro-name {
-    min-height: 31px;
-    font-size: 11px;
-    letter-spacing: 0;
-  }
-
-  #viewToday .macro-grid .macro-heading small {
-    font-size: 10px;
-  }
-
-  #viewToday .macro-grid .macro-ring strong {
-    font-size: 13px;
-  }
-
-  #viewToday .macro-grid .macro-value b {
-    font-size: clamp(22px, 7vw, 30px);
-  }
-
-  #viewToday .macro-grid .macro-value span {
-    font-size: 12px;
-  }
+  #viewToday .calorie-card .summary-head { margin-bottom: 18px; }
+  #viewToday .calorie-card .calorie-layout { margin-top: 0; }
+  #viewToday .calorie-card .kcal-main strong { font-size: clamp(52px, 15vw, 68px); }
+  #viewToday .calorie-card .calorie-ring { transform: scale(.94); }
+  #viewToday .calorie-card .progress-lg { margin-top: 18px; }
+  #viewToday .calorie-card::after { bottom: -48%; width: 58%; }
+  #viewToday .macro-grid { padding: 48px 4px 8px; }
+  #viewToday .macro-grid::before { left: 16px; top: 16px; font-size: 13px; }
+  #viewToday .macro-grid .macro-card { min-height: 132px !important; padding: 7px 6px 10px !important; }
+  #viewToday .macro-grid .macro-name { min-height: 31px; font-size: 11px; letter-spacing: 0; }
+  #viewToday .macro-grid .macro-heading small { font-size: 10px; }
+  #viewToday .macro-grid .macro-ring strong { font-size: 13px; }
+  #viewToday .macro-grid .macro-value b { font-size: clamp(22px, 7vw, 30px); }
+  #viewToday .macro-grid .macro-value span { font-size: 12px; }
 }
 
 @media (max-width: 360px) {
-  #viewToday .macro-grid .macro-card {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-  }
-
-  #viewToday .macro-grid .macro-name {
-    font-size: 10px;
-  }
-
-  #viewToday .macro-grid .macro-value b {
-    font-size: 21px;
-  }
+  #viewToday .macro-grid .macro-card { padding-left: 4px !important; padding-right: 4px !important; }
+  #viewToday .macro-grid .macro-name { font-size: 10px; }
+  #viewToday .macro-grid .macro-value b { font-size: 21px; }
 }
