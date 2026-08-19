@@ -13,389 +13,170 @@
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
-
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      body.dashboard-panel-open {
-        overflow: hidden !important;
-        overscroll-behavior: none;
+      body.dashboard-panel-open { overflow:hidden!important; overscroll-behavior:none; }
+      .dashboard-expand-backdrop { position:fixed; inset:0; z-index:140; opacity:0; background:rgba(2,9,12,.72); backdrop-filter:blur(8px) saturate(.72); -webkit-backdrop-filter:blur(8px) saturate(.72); transition:opacity 220ms ease; }
+      .dashboard-expand-backdrop.visible { opacity:1; }
+      #viewToday .calorie-card, #viewToday .macro-grid, #waterCard { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+      .dashboard-expand-placeholder { visibility:hidden!important; pointer-events:none!important; }
+
+      #viewToday .dashboard-panel-expanded, #waterCard.dashboard-panel-expanded {
+        position:fixed!important; z-index:150!important; margin:0!important; min-height:0!important; max-width:none!important; max-height:none!important;
+        box-sizing:border-box!important; overflow:hidden!important; cursor:zoom-out!important; border-radius:28px!important;
+        box-shadow:0 30px 90px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.04)!important;
+        transition:left 300ms cubic-bezier(.2,.82,.2,1), top 300ms cubic-bezier(.2,.82,.2,1), width 300ms cubic-bezier(.2,.82,.2,1), height 300ms cubic-bezier(.2,.82,.2,1), border-radius 300ms ease, box-shadow 300ms ease!important;
+      }
+      .dashboard-panel-expanded::after {
+        content:'Dotknij, aby zwinąć  ⌃'; position:absolute; left:50%; bottom:15px; transform:translateX(-50%); z-index:5;
+        padding:7px 12px; border:1px solid rgba(150,190,190,.16); border-radius:999px; background:rgba(4,17,21,.62); color:rgba(210,229,229,.62);
+        font-size:11px; font-weight:750; letter-spacing:.02em; white-space:nowrap; pointer-events:none;
       }
 
-      .dashboard-expand-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 140;
-        opacity: 0;
-        background: rgba(2, 9, 12, .68);
-        backdrop-filter: blur(7px) saturate(.72);
-        -webkit-backdrop-filter: blur(7px) saturate(.72);
-        transition: opacity 220ms ease;
-      }
+      /* Calories: hero detail view */
+      #viewToday .calorie-card.dashboard-panel-expanded { display:flex!important; flex-direction:column; justify-content:center!important; padding:30px 28px 52px!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .summary-head { margin:0 0 22px!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .summary-label { font-size:clamp(18px,5vw,24px)!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .calorie-layout { width:100%; margin:0 0 30px!important; display:grid!important; grid-template-columns:minmax(0,1fr) auto!important; align-items:center!important; gap:16px!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .kcal-main strong { font-size:clamp(74px,21vw,108px)!important; line-height:.9!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .kcal-main span { font-size:clamp(20px,5.5vw,28px)!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring { transform:scale(1.12)!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .progress-lg { width:100%; height:14px!important; margin-top:6px!important; }
+      #viewToday .calorie-card.dashboard-panel-expanded .remaining-row { width:100%; margin-top:18px!important; font-size:clamp(18px,5vw,25px)!important; }
 
-      .dashboard-expand-backdrop.visible { opacity: 1; }
-
-      #viewToday .calorie-card,
-      #viewToday .macro-grid,
-      #waterCard {
-        cursor: pointer;
-        touch-action: manipulation;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      #viewToday .calorie-card:focus-visible,
-      #viewToday .macro-grid:focus-visible,
-      #waterCard:focus-visible {
-        outline: 3px solid rgba(93, 234, 216, .52);
-        outline-offset: 4px;
-      }
-
-      .dashboard-expand-placeholder {
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-
-      #viewToday .dashboard-panel-expanded,
-      #waterCard.dashboard-panel-expanded {
-        position: fixed !important;
-        z-index: 150 !important;
-        margin: 0 !important;
-        min-height: 0 !important;
-        max-width: none !important;
-        max-height: none !important;
-        box-sizing: border-box !important;
-        cursor: pointer !important;
-        overflow: hidden !important;
-        overscroll-behavior: contain;
-        border-radius: 28px !important;
-        box-shadow:
-          0 28px 78px rgba(0, 0, 0, .48),
-          0 0 0 1px rgba(255,255,255,.025),
-          inset 0 1px 0 rgba(255,255,255,.04) !important;
-        transition:
-          left 290ms cubic-bezier(.2,.82,.2,1),
-          top 290ms cubic-bezier(.2,.82,.2,1),
-          width 290ms cubic-bezier(.2,.82,.2,1),
-          height 290ms cubic-bezier(.2,.82,.2,1),
-          border-radius 290ms cubic-bezier(.2,.82,.2,1),
-          box-shadow 290ms ease !important;
-      }
-
-      #viewToday .calorie-card.dashboard-panel-expanded {
-        display: flex !important;
-        flex-direction: column;
-        justify-content: center !important;
-        padding: clamp(22px, 6vw, 36px) !important;
-      }
-
-      #viewToday .calorie-card.dashboard-panel-expanded .summary-head,
-      #viewToday .calorie-card.dashboard-panel-expanded .calorie-layout,
-      #viewToday .calorie-card.dashboard-panel-expanded .progress-lg,
-      #viewToday .calorie-card.dashboard-panel-expanded .remaining-row {
-        width: 100%;
-      }
-
-      #viewToday .calorie-card.dashboard-panel-expanded .calorie-layout {
-        margin: 24px 0 22px !important;
-      }
-
-      #viewToday .calorie-card.dashboard-panel-expanded .kcal-main strong {
-        font-size: clamp(64px, 18vw, 96px) !important;
-      }
-
-      #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring {
-        transform: scale(1.04) !important;
-      }
-
+      /* Macro: expanded state becomes three useful horizontal rows. */
       #viewToday .macro-grid.dashboard-panel-expanded {
-        padding: 60px 8px 18px !important;
-        align-items: stretch !important;
+        display:grid!important; grid-template-columns:1fr!important; grid-template-rows:auto repeat(3,1fr)!important; gap:0!important;
+        padding:58px 22px 48px!important; align-content:stretch!important;
       }
-
-      #viewToday .macro-grid.dashboard-panel-expanded::before {
-        top: 20px !important;
-      }
-
+      #viewToday .macro-grid.dashboard-panel-expanded::before { top:20px!important; left:24px!important; font-size:16px!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-card {
-        min-height: 0 !important;
-        height: auto !important;
-        padding: 10px 8px 14px !important;
-        display: flex !important;
-        flex-direction: column;
-        justify-content: center !important;
-        gap: 8px;
+        min-height:0!important; height:auto!important; padding:14px 0!important; border-left:0!important; border-bottom:1px solid rgba(148,190,190,.14)!important;
+        display:grid!important; grid-template-columns:minmax(118px,.9fr) minmax(92px,.7fr) minmax(120px,1fr)!important; grid-template-rows:auto auto!important;
+        align-items:center!important; column-gap:12px!important; row-gap:8px!important;
       }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-card:last-child { border-bottom:0!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-card-top { grid-column:1; grid-row:1 / span 2; display:block!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading { text-align:left!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-name { min-height:0!important; justify-content:flex-start!important; font-size:clamp(14px,4vw,18px)!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading small { margin-top:7px!important; font-size:12px!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-ring { grid-column:2; grid-row:1 / span 2; margin:0!important; text-align:center!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-ring strong { font-size:clamp(24px,7vw,34px)!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value { grid-column:3; grid-row:1; margin:0!important; justify-content:flex-end!important; text-align:right!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:clamp(38px,10vw,54px)!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value span { font-size:16px!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .mini-progress { grid-column:3; grid-row:2; width:100%!important; height:8px!important; margin:0!important; }
 
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-name {
-        font-size: clamp(11px, 3.3vw, 15px) !important;
+      /* Hydration: compact detail screen, content distributed instead of floating in a tall empty card. */
+      #waterCard.dashboard-panel-expanded { display:flex!important; flex-direction:column; justify-content:center!important; padding:30px 28px 52px!important; }
+      #waterCard.dashboard-panel-expanded .water-head { width:100%; align-items:center!important; margin:0!important; }
+      #waterCard.dashboard-panel-expanded .water-icon { transform:scale(1.08); }
+      #waterCard.dashboard-panel-expanded .water-title { font-size:clamp(24px,6vw,32px)!important; }
+      #waterCard.dashboard-panel-expanded .water-value strong { font-size:clamp(44px,12vw,64px)!important; line-height:1!important; }
+      #waterCard.dashboard-panel-expanded .water-progress { width:100%; height:16px!important; margin:34px 0 13px!important; }
+      #waterCard.dashboard-panel-expanded .water-progress-copy { width:100%; font-size:16px!important; }
+      #waterCard.dashboard-panel-expanded #waterBreakdown { width:100%; margin-top:14px!important; font-size:15px!important; }
+      #waterCard.dashboard-panel-expanded .water-actions { width:100%; margin-top:32px!important; display:grid!important; gap:12px!important; }
+      #waterCard.dashboard-panel-expanded .water-add, #waterCard.dashboard-panel-expanded .water-undo { min-height:58px!important; }
+
+      @media (max-width:430px) {
+        #viewToday .calorie-card.dashboard-panel-expanded { padding-left:22px!important; padding-right:22px!important; }
+        #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring { transform:scale(.98)!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded { padding-left:18px!important; padding-right:18px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:minmax(100px,.85fr) minmax(70px,.55fr) minmax(100px,.9fr)!important; column-gap:8px!important; }
+        #waterCard.dashboard-panel-expanded { padding-left:22px!important; padding-right:22px!important; }
       }
-
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading small {
-        font-size: 11px !important;
+      @media (max-width:360px) {
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:1fr 72px 96px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-name { font-size:12px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:34px!important; }
       }
-
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-value {
-        margin-top: 8px !important;
-      }
-
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-value b {
-        font-size: clamp(34px, 9vw, 48px) !important;
-      }
-
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-ring strong {
-        font-size: clamp(18px, 5vw, 24px) !important;
-      }
-
-      #viewToday .macro-grid.dashboard-panel-expanded .mini-progress {
-        margin-top: 14px !important;
-      }
-
-      #waterCard.dashboard-panel-expanded {
-        display: flex !important;
-        flex-direction: column;
-        justify-content: center !important;
-        padding: clamp(22px, 6vw, 34px) !important;
-      }
-
-      #waterCard.dashboard-panel-expanded .water-head,
-      #waterCard.dashboard-panel-expanded .water-progress,
-      #waterCard.dashboard-panel-expanded .water-progress-copy,
-      #waterCard.dashboard-panel-expanded .water-actions,
-      #waterCard.dashboard-panel-expanded #waterBreakdown {
-        width: 100%;
-      }
-
-      #waterCard.dashboard-panel-expanded .water-value strong {
-        font-size: clamp(28px, 8vw, 40px) !important;
-      }
-
-      #waterCard.dashboard-panel-expanded .water-progress {
-        height: 14px !important;
-        margin: 28px 0 12px !important;
-      }
-
-      #waterCard.dashboard-panel-expanded .water-actions {
-        margin-top: 26px !important;
-      }
-
-      #waterCard.dashboard-panel-expanded .water-add,
-      #waterCard.dashboard-panel-expanded .water-undo {
-        min-height: 52px !important;
-      }
-
-      @media (max-width: 430px) {
-        #viewToday .macro-grid.dashboard-panel-expanded {
-          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-          padding-left: 4px !important;
-          padding-right: 4px !important;
-        }
-
-        #viewToday .macro-grid.dashboard-panel-expanded .macro-card {
-          padding-left: 4px !important;
-          padding-right: 4px !important;
-        }
-
-        #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring {
-          transform: scale(.92) !important;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .dashboard-expand-backdrop,
-        #viewToday .dashboard-panel-expanded,
-        #waterCard.dashboard-panel-expanded {
-          transition-duration: 1ms !important;
-        }
-      }
+      @media (prefers-reduced-motion:reduce) { .dashboard-expand-backdrop, #viewToday .dashboard-panel-expanded, #waterCard.dashboard-panel-expanded { transition-duration:1ms!important; } }
     `;
     document.head.appendChild(style);
   }
 
-  function getTarget(node) {
-    return node?.closest?.(TARGET_SELECTOR) || null;
-  }
-
+  function getTarget(node) { return node?.closest?.(TARGET_SELECTOR) || null; }
   function setAccessible(target) {
     if (!target) return;
-    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '0');
-    target.setAttribute('role', 'button');
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex','0');
+    target.setAttribute('role','button');
     target.setAttribute('aria-expanded', target === expanded ? 'true' : 'false');
-    if (!target.getAttribute('aria-label')) {
-      if (target.matches('.calorie-card')) target.setAttribute('aria-label', 'Rozwiń panel kalorii');
-      else if (target.matches('.macro-grid')) target.setAttribute('aria-label', 'Rozwiń panel makroelementów');
-      else if (target.id === 'waterCard') target.setAttribute('aria-label', 'Rozwiń panel nawodnienia');
-    }
   }
-
-  function prepareTargets() {
-    document.querySelectorAll(TARGET_SELECTOR).forEach(setAccessible);
-  }
+  function prepareTargets() { document.querySelectorAll(TARGET_SELECTOR).forEach(setAccessible); }
 
   function availableViewport() {
-    const side = 12;
-    const top = 14;
-    const nav = document.querySelector('.bottom-nav');
-    const navRect = nav?.getBoundingClientRect();
-    const bottom = navRect && navRect.top > window.innerHeight * .52
-      ? navRect.top - 12
-      : window.innerHeight - 12;
-
-    return {
-      left: side,
-      top,
-      width: Math.max(280, window.innerWidth - side * 2),
-      height: Math.max(360, bottom - top)
-    };
+    const side=12, top=12;
+    const nav=document.querySelector('.bottom-nav');
+    const navRect=nav?.getBoundingClientRect();
+    const bottom=navRect && navRect.top > window.innerHeight*.52 ? navRect.top-12 : window.innerHeight-12;
+    return { left:side, top, width:Math.max(280,window.innerWidth-side*2), height:Math.max(360,bottom-top) };
   }
 
   function expandedBounds(target) {
-    const vp = availableViewport();
-    const width = vp.width;
-    let wantedHeight;
-
-    if (target.matches('.calorie-card')) {
-      wantedHeight = Math.max(460, Math.min(590, width * 1.42));
-    } else if (target.matches('.macro-grid')) {
-      wantedHeight = Math.max(480, Math.min(610, width * 1.48));
-    } else {
-      wantedHeight = Math.max(540, Math.min(680, width * 1.62));
-    }
-
-    const height = Math.min(vp.height, wantedHeight);
-    const top = vp.top + Math.max(0, (vp.height - height) / 2);
-
-    return { left: vp.left, top, width, height };
+    const vp=availableViewport();
+    let ratio=.76;
+    if (target.matches('.calorie-card')) ratio=.72;
+    else if (target.matches('.macro-grid')) ratio=.78;
+    else ratio=.76;
+    const minH=target.matches('.macro-grid') ? 510 : target.id==='waterCard' ? 500 : 470;
+    const height=Math.min(vp.height, Math.max(minH, vp.height*ratio));
+    const top=vp.top+Math.max(0,(vp.height-height)/2);
+    return { left:vp.left, top, width:vp.width, height };
   }
 
   function ensureBackdrop() {
-    let backdrop = document.getElementById(BACKDROP_ID);
+    let backdrop=document.getElementById(BACKDROP_ID);
     if (backdrop) return backdrop;
-    backdrop = document.createElement('div');
-    backdrop.id = BACKDROP_ID;
-    backdrop.className = 'dashboard-expand-backdrop';
-    backdrop.setAttribute('aria-hidden', 'true');
-    backdrop.addEventListener('click', collapse);
-    document.body.appendChild(backdrop);
-    return backdrop;
+    backdrop=document.createElement('div'); backdrop.id=BACKDROP_ID; backdrop.className='dashboard-expand-backdrop'; backdrop.setAttribute('aria-hidden','true');
+    backdrop.addEventListener('click',collapse); document.body.appendChild(backdrop); return backdrop;
   }
-
-  function applyRect(target, rect) {
-    target.style.left = `${Math.round(rect.left)}px`;
-    target.style.top = `${Math.round(rect.top)}px`;
-    target.style.width = `${Math.round(rect.width)}px`;
-    target.style.height = `${Math.round(rect.height)}px`;
+  function applyRect(target,rect) { target.style.left=`${Math.round(rect.left)}px`; target.style.top=`${Math.round(rect.top)}px`; target.style.width=`${Math.round(rect.width)}px`; target.style.height=`${Math.round(rect.height)}px`; }
+  function createPlaceholder(target,rect) {
+    const h=document.createElement('div'); h.className='dashboard-expand-placeholder'; h.style.width=`${rect.width}px`; h.style.height=`${rect.height}px`; h.style.marginTop=getComputedStyle(target).marginTop; h.style.marginBottom=getComputedStyle(target).marginBottom; target.parentNode?.insertBefore(h,target); return h;
   }
-
-  function createPlaceholder(target, rect) {
-    const holder = document.createElement('div');
-    holder.className = 'dashboard-expand-placeholder';
-    holder.style.width = `${rect.width}px`;
-    holder.style.height = `${rect.height}px`;
-    holder.style.marginTop = getComputedStyle(target).marginTop;
-    holder.style.marginBottom = getComputedStyle(target).marginBottom;
-    target.parentNode?.insertBefore(holder, target);
-    return holder;
-  }
-
-  function clearInlineGeometry(target) {
-    ['left', 'top', 'width', 'height'].forEach(prop => target.style.removeProperty(prop));
-  }
+  function clearInlineGeometry(target) { ['left','top','width','height'].forEach(p=>target.style.removeProperty(p)); }
 
   function expand(target) {
     if (!target || expanded || closing) return;
-
-    const start = target.getBoundingClientRect();
-    if (!start.width || !start.height) return;
-
-    expanded = target;
-    placeholder = createPlaceholder(target, start);
-    document.body.classList.add('dashboard-panel-open');
-
-    const backdrop = ensureBackdrop();
-    target.classList.add('dashboard-panel-expanded');
-    target.setAttribute('aria-expanded', 'true');
-    applyRect(target, start);
-
+    const start=target.getBoundingClientRect(); if (!start.width || !start.height) return;
+    expanded=target; placeholder=createPlaceholder(target,start); document.body.classList.add('dashboard-panel-open');
+    const backdrop=ensureBackdrop(); target.classList.add('dashboard-panel-expanded'); target.setAttribute('aria-expanded','true'); applyRect(target,start);
     void target.offsetWidth;
-    requestAnimationFrame(() => {
-      backdrop.classList.add('visible');
-      applyRect(target, expandedBounds(target));
-    });
+    requestAnimationFrame(()=>{ backdrop.classList.add('visible'); applyRect(target,expandedBounds(target)); });
   }
-
   function finishCollapse(target) {
-    clearInlineGeometry(target);
-    target.classList.remove('dashboard-panel-expanded');
-    target.setAttribute('aria-expanded', 'false');
-    placeholder?.remove();
-    placeholder = null;
-    expanded = null;
-    closing = false;
-    document.body.classList.remove('dashboard-panel-open');
-
-    const backdrop = document.getElementById(BACKDROP_ID);
-    backdrop?.classList.remove('visible');
-    window.setTimeout(() => backdrop?.remove(), REDUCED_MOTION ? 0 : 230);
+    clearInlineGeometry(target); target.classList.remove('dashboard-panel-expanded'); target.setAttribute('aria-expanded','false'); placeholder?.remove(); placeholder=null; expanded=null; closing=false; document.body.classList.remove('dashboard-panel-open');
+    const backdrop=document.getElementById(BACKDROP_ID); backdrop?.classList.remove('visible'); window.setTimeout(()=>backdrop?.remove(),REDUCED_MOTION?0:230);
   }
-
   function collapse() {
     if (!expanded || closing) return;
-    const target = expanded;
-    const end = placeholder?.getBoundingClientRect();
-    closing = true;
-
-    document.getElementById(BACKDROP_ID)?.classList.remove('visible');
-
-    if (!end || !end.width || !end.height || REDUCED_MOTION) {
-      finishCollapse(target);
-      return;
-    }
-
-    applyRect(target, end);
-    window.setTimeout(() => finishCollapse(target), 310);
+    const target=expanded, end=placeholder?.getBoundingClientRect(); closing=true; document.getElementById(BACKDROP_ID)?.classList.remove('visible');
+    if (!end || !end.width || !end.height || REDUCED_MOTION) { finishCollapse(target); return; }
+    applyRect(target,end); window.setTimeout(()=>finishCollapse(target),320);
   }
+  function toggle(target) { if (target===expanded) collapse(); else if (!expanded) expand(target); }
 
-  function toggle(target) {
-    if (target === expanded) collapse();
-    else if (!expanded) expand(target);
-  }
+  document.addEventListener('pointerup',event=>{
+    if (event.pointerType==='mouse') return;
+    const target=getTarget(event.target); if (!target) return;
+    const control=event.target?.closest?.(INTERACTIVE_SELECTOR); if (control && control!==target) return;
+    event.preventDefault(); toggle(target);
+  },{passive:false});
 
-  document.addEventListener('click', event => {
-    const target = getTarget(event.target);
-    if (!target) return;
+  document.addEventListener('click',event=>{
+    const target=getTarget(event.target); if (!target) return;
+    const control=event.target?.closest?.(INTERACTIVE_SELECTOR); if (control && control!==target) return;
+    if (event.detail===0 || !('PointerEvent' in window)) { event.preventDefault(); toggle(target); }
+  },{passive:false});
 
-    // Real controls inside a card keep their action. Every other point inside the
-    // card — text, numbers, progress bars, icons and blank space — toggles it.
-    const innerControl = event.target?.closest?.(INTERACTIVE_SELECTOR);
-    if (innerControl && innerControl !== target) return;
-
-    event.preventDefault();
-    toggle(target);
-  }, { passive: false });
-
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && expanded) {
-      event.preventDefault();
-      collapse();
-      return;
-    }
-
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    const target = getTarget(event.target);
-    if (!target || event.target !== target) return;
-    event.preventDefault();
-    toggle(target);
+  document.addEventListener('keydown',event=>{
+    if (event.key==='Escape' && expanded) { event.preventDefault(); collapse(); return; }
+    if (event.key!=='Enter' && event.key!==' ') return;
+    const target=getTarget(event.target); if (!target || event.target!==target) return; event.preventDefault(); toggle(target);
   });
-
-  window.addEventListener('resize', () => {
-    if (expanded && !closing) applyRect(expanded, expandedBounds(expanded));
-  });
-
-  const observer = new MutationObserver(prepareTargets);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-
-  injectStyles();
-  prepareTargets();
+  window.addEventListener('resize',()=>{ if (expanded && !closing) applyRect(expanded,expandedBounds(expanded)); });
+  new MutationObserver(prepareTargets).observe(document.documentElement,{childList:true,subtree:true});
+  injectStyles(); prepareTargets();
 })();
