@@ -34,7 +34,7 @@
         font-size:11px; font-weight:750; letter-spacing:.02em; white-space:nowrap; pointer-events:none;
       }
 
-      /* Calories: hero detail view */
+      /* Calories: accepted state — intentionally unchanged. */
       #viewToday .calorie-card.dashboard-panel-expanded { display:flex!important; flex-direction:column; justify-content:center!important; padding:30px 28px 52px!important; }
       #viewToday .calorie-card.dashboard-panel-expanded .summary-head { margin:0 0 22px!important; }
       #viewToday .calorie-card.dashboard-panel-expanded .summary-label { font-size:clamp(18px,5vw,24px)!important; }
@@ -45,52 +45,62 @@
       #viewToday .calorie-card.dashboard-panel-expanded .progress-lg { width:100%; height:14px!important; margin-top:6px!important; }
       #viewToday .calorie-card.dashboard-panel-expanded .remaining-row { width:100%; margin-top:18px!important; font-size:clamp(18px,5vw,25px)!important; }
 
-      /* Macro: expanded state becomes three useful horizontal rows. */
+      /* Macro detail: three rows now consume the full useful area of the card. */
       #viewToday .macro-grid.dashboard-panel-expanded {
-        display:grid!important; grid-template-columns:1fr!important; grid-template-rows:auto repeat(3,1fr)!important; gap:0!important;
-        padding:58px 22px 48px!important; align-content:stretch!important;
+        display:grid!important; grid-template-columns:1fr!important; grid-template-rows:repeat(3,minmax(0,1fr))!important; gap:0!important;
+        padding:62px 24px 52px!important; align-content:stretch!important;
       }
-      #viewToday .macro-grid.dashboard-panel-expanded::before { top:20px!important; left:24px!important; font-size:16px!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded::before { top:21px!important; left:26px!important; font-size:16px!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-card {
-        min-height:0!important; height:auto!important; padding:14px 0!important; border-left:0!important; border-bottom:1px solid rgba(148,190,190,.14)!important;
-        display:grid!important; grid-template-columns:minmax(118px,.9fr) minmax(92px,.7fr) minmax(120px,1fr)!important; grid-template-rows:auto auto!important;
-        align-items:center!important; column-gap:12px!important; row-gap:8px!important;
+        min-height:0!important; height:100%!important; padding:20px 0!important; border-left:0!important; border-bottom:1px solid rgba(148,190,190,.14)!important;
+        display:grid!important; grid-template-columns:minmax(125px,.95fr) minmax(92px,.66fr) minmax(132px,1fr)!important; grid-template-rows:auto auto!important;
+        align-items:center!important; align-content:center!important; column-gap:16px!important; row-gap:10px!important;
       }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-card:last-child { border-bottom:0!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-card-top { grid-column:1; grid-row:1 / span 2; display:block!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-heading { text-align:left!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-name { min-height:0!important; justify-content:flex-start!important; font-size:clamp(14px,4vw,18px)!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading small { margin-top:7px!important; font-size:12px!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-name { min-height:0!important; justify-content:flex-start!important; font-size:clamp(15px,4.1vw,19px)!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading small { margin-top:9px!important; font-size:13px!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-ring { grid-column:2; grid-row:1 / span 2; margin:0!important; text-align:center!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-ring strong { font-size:clamp(24px,7vw,34px)!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-ring strong { font-size:clamp(28px,7.6vw,38px)!important; }
       #viewToday .macro-grid.dashboard-panel-expanded .macro-value { grid-column:3; grid-row:1; margin:0!important; justify-content:flex-end!important; text-align:right!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:clamp(38px,10vw,54px)!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .macro-value span { font-size:16px!important; }
-      #viewToday .macro-grid.dashboard-panel-expanded .mini-progress { grid-column:3; grid-row:2; width:100%!important; height:8px!important; margin:0!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:clamp(44px,11.5vw,62px)!important; line-height:.95!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value span { font-size:17px!important; }
+      #viewToday .macro-grid.dashboard-panel-expanded .mini-progress { grid-column:3; grid-row:2; width:100%!important; height:9px!important; margin:0!important; }
 
-      /* Hydration: compact detail screen, content distributed instead of floating in a tall empty card. */
-      #waterCard.dashboard-panel-expanded { display:flex!important; flex-direction:column; justify-content:center!important; padding:30px 28px 52px!important; }
-      #waterCard.dashboard-panel-expanded .water-head { width:100%; align-items:center!important; margin:0!important; }
-      #waterCard.dashboard-panel-expanded .water-icon { transform:scale(1.08); }
-      #waterCard.dashboard-panel-expanded .water-title { font-size:clamp(24px,6vw,32px)!important; }
-      #waterCard.dashboard-panel-expanded .water-value strong { font-size:clamp(44px,12vw,64px)!important; line-height:1!important; }
-      #waterCard.dashboard-panel-expanded .water-progress { width:100%; height:16px!important; margin:34px 0 13px!important; }
+      /* Hydration detail: stack identity and value so labels can never collide. */
+      #waterCard.dashboard-panel-expanded { display:flex!important; flex-direction:column; justify-content:center!important; padding:34px 28px 54px!important; }
+      #waterCard.dashboard-panel-expanded .water-head {
+        width:100%; margin:0!important; display:grid!important; grid-template-columns:1fr!important; grid-template-rows:auto auto!important; gap:20px!important; align-items:start!important;
+      }
+      #waterCard.dashboard-panel-expanded .water-heading { width:100%; display:flex!important; align-items:center!important; gap:16px!important; }
+      #waterCard.dashboard-panel-expanded .water-icon { transform:scale(1.08); flex:0 0 52px!important; }
+      #waterCard.dashboard-panel-expanded .water-title { font-size:clamp(23px,6vw,30px)!important; line-height:1.05!important; }
+      #waterCard.dashboard-panel-expanded .water-sub { margin-top:6px!important; max-width:260px; font-size:14px!important; line-height:1.35!important; }
+      #waterCard.dashboard-panel-expanded .water-value { width:100%; text-align:left!important; display:flex!important; align-items:baseline!important; gap:12px!important; white-space:normal!important; }
+      #waterCard.dashboard-panel-expanded .water-value strong { display:inline!important; font-size:clamp(48px,13vw,68px)!important; line-height:.95!important; }
+      #waterCard.dashboard-panel-expanded .water-value span { display:inline!important; font-size:16px!important; }
+      #waterCard.dashboard-panel-expanded .water-progress { width:100%; height:16px!important; margin:30px 0 13px!important; }
       #waterCard.dashboard-panel-expanded .water-progress-copy { width:100%; font-size:16px!important; }
       #waterCard.dashboard-panel-expanded #waterBreakdown { width:100%; margin-top:14px!important; font-size:15px!important; }
-      #waterCard.dashboard-panel-expanded .water-actions { width:100%; margin-top:32px!important; display:grid!important; gap:12px!important; }
+      #waterCard.dashboard-panel-expanded .water-actions { width:100%; margin-top:28px!important; display:grid!important; gap:12px!important; }
       #waterCard.dashboard-panel-expanded .water-add, #waterCard.dashboard-panel-expanded .water-undo { min-height:58px!important; }
 
       @media (max-width:430px) {
         #viewToday .calorie-card.dashboard-panel-expanded { padding-left:22px!important; padding-right:22px!important; }
         #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring { transform:scale(.98)!important; }
         #viewToday .macro-grid.dashboard-panel-expanded { padding-left:18px!important; padding-right:18px!important; }
-        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:minmax(100px,.85fr) minmax(70px,.55fr) minmax(100px,.9fr)!important; column-gap:8px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:minmax(105px,.9fr) minmax(72px,.55fr) minmax(108px,.9fr)!important; column-gap:9px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:clamp(40px,11vw,54px)!important; }
         #waterCard.dashboard-panel-expanded { padding-left:22px!important; padding-right:22px!important; }
+        #waterCard.dashboard-panel-expanded .water-value strong { font-size:clamp(46px,13vw,60px)!important; }
       }
       @media (max-width:360px) {
-        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:1fr 72px 96px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-card { grid-template-columns:1fr 70px 94px!important; }
         #viewToday .macro-grid.dashboard-panel-expanded .macro-name { font-size:12px!important; }
-        #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:34px!important; }
+        #viewToday .macro-grid.dashboard-panel-expanded .macro-value b { font-size:36px!important; }
+        #waterCard.dashboard-panel-expanded .water-value { gap:8px!important; }
+        #waterCard.dashboard-panel-expanded .water-value strong { font-size:43px!important; }
       }
       @media (prefers-reduced-motion:reduce) { .dashboard-expand-backdrop, #viewToday .dashboard-panel-expanded, #waterCard.dashboard-panel-expanded { transition-duration:1ms!important; } }
     `;
@@ -118,9 +128,9 @@
     const vp=availableViewport();
     let ratio=.76;
     if (target.matches('.calorie-card')) ratio=.72;
-    else if (target.matches('.macro-grid')) ratio=.78;
+    else if (target.matches('.macro-grid')) ratio=.82;
     else ratio=.76;
-    const minH=target.matches('.macro-grid') ? 510 : target.id==='waterCard' ? 500 : 470;
+    const minH=target.matches('.macro-grid') ? 540 : target.id==='waterCard' ? 500 : 470;
     const height=Math.min(vp.height, Math.max(minH, vp.height*ratio));
     const top=vp.top+Math.max(0,(vp.height-height)/2);
     return { left:vp.left, top, width:vp.width, height };
