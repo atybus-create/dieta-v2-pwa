@@ -26,7 +26,7 @@
       './history-hydration.js?v=20260815-history-hydration1',
       './theme-manager.js?v=20260815-theme1',
       './dashboard-layout-v2.js?v=20260819-rootfix2',
-      './dashboard-expand.js?v=20260819-detail2',
+      './dashboard-expand.js?v=20260819-detail3',
       './pwa-login-safety.js?v=20260816-pwalogin1'
     ];
 
@@ -58,13 +58,7 @@
       .map((code, index) => `\ntry {\n${code}\n} catch (error) {\n  console.error('Dieta V2 extension failed: ${extensionUrls[index]}', error);\n}\n`)
       .join('\n');
 
-    (0, eval)(
-      core +
-      '\n' +
-      authOverride +
-      startOnce +
-      isolatedExtensions
-    );
+    (0, eval)(core + '\n' + authOverride + startOnce + isolatedExtensions);
   } catch (error) {
     console.error('Dieta V2 bootstrap error:', error);
     const splash = document.getElementById('startSplash');
