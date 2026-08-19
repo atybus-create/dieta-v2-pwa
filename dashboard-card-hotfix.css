@@ -1,0 +1,14 @@
+/* Explicit mobile hotfix for the calorie summary card. Loaded after dashboard-layout-v2.css. */
+@media (max-width: 900px) {
+  #viewToday .summary-card.calorie-card {
+    box-sizing: border-box !important;
+    display: block !important;
+    height: 270px !important;
+    min-height: 270px !important;
+    max-height: 270px !important;
+    padding: 18px 20px 16px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .summary-head {
+    margin: 0 0 10px !important;
+  }
