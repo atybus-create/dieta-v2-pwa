@@ -27,48 +27,33 @@
       './theme-manager.js?v=20260815-theme1',
       './dashboard-layout-v2.js?v=20260819-rootfix2',
       './dashboard-expand.js?v=20260819-detail3',
-      './favorites-editor.js?v=20260819-favorites1',
+      './favorites-editor.js?v=20260819-favorites3',
+      './favorites-editor-click-fix.js?v=20260819-favorites3',
       './pwa-login-safety.js?v=20260816-pwalogin1'
     ];
 
-    const responses = await Promise.all(
-      modules.map(url => fetch(url, { cache: 'no-store' }))
-    );
-
+    const responses = await Promise.all(modules.map(url => fetch(url, { cache: 'no-store' })));
     const failed = responses.findIndex(response => !response.ok);
-    if (failed !== -1) {
-      throw new Error(`Nie udało się pobrać modułu aplikacji: ${modules[failed]}`);
-    }
-
+    if (failed !== -1) throw new Error(`Nie udało się pobrać modułu aplikacji: ${modules[failed]}`);
     const texts = await Promise.all(responses.map(response => response.text()));
     const oldBackendBase = 'https://n8n-pi.taild8d05f.ts.net';
     const backendBase = 'https://n8n-pi.taild8d05f.ts.net';
     const routedTexts = texts.map(code => code.split(oldBackendBase).join(backendBase));
-
     let core = routedTexts[0];
     const authOverride = routedTexts[1];
     const extensions = routedTexts.slice(2);
     const extensionUrls = modules.slice(2);
-
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`;
     core = core.replace(oldInitHook, '');
-
     const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
-
-    const isolatedExtensions = extensions
-      .map((code, index) => `\ntry {\n${code}\n} catch (error) {\n  console.error('Dieta V2 extension failed: ${extensionUrls[index]}', error);\n}\n`)
-      .join('\n');
-
+    const isolatedExtensions = extensions.map((code, index) => `\ntry {\n${code}\n} catch (error) {\n  console.error('Dieta V2 extension failed: ${extensionUrls[index]}', error);\n}\n`).join('\n');
     (0, eval)(core + '\n' + authOverride + startOnce + isolatedExtensions);
   } catch (error) {
     console.error('Dieta V2 bootstrap error:', error);
     const splash = document.getElementById('startSplash');
     if (splash) splash.classList.add('hidden');
     const authError = document.getElementById('authError');
-    if (authError) {
-      authError.textContent = 'Nie udało się uruchomić aplikacji. Odśwież stronę.';
-      authError.classList.remove('hidden');
-    }
+    if (authError) { authError.textContent = 'Nie udało się uruchomić aplikacji. Odśwież stronę.'; authError.classList.remove('hidden'); }
     const authScreen = document.getElementById('authScreen');
     if (authScreen) authScreen.classList.remove('hidden');
   }
