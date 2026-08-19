@@ -12,6 +12,7 @@
       './auth-login-v2.js?v=20260816-pwalogin1',
       './confirm-modal.js?v=20260815-extfix1',
       './analysis-item-removal.js?v=20260815-grams2',
+      './analysis-item-addition.js?v=20260819-addingredient1',
       './analysis-cancel.js?v=20260815-extfix1',
       './photo-compression.js?v=20260815-extfix1',
       './install-flow-fix.js?v=20260815-extfix1',
