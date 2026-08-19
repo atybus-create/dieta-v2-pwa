@@ -4,7 +4,7 @@
   const STYLE_ID = 'dashboardExpandStyles';
   const BACKDROP_ID = 'dashboardExpandBackdrop';
   const TARGET_SELECTOR = '#viewToday .calorie-card, #viewToday .macro-grid, #waterCard';
-  const INTERACTIVE_SELECTOR = 'button, input, textarea, select, a, label, [role="button"]';
+  const INTERACTIVE_SELECTOR = 'button, input, textarea, select, a, label';
   const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   let expanded = null;
@@ -27,10 +27,10 @@
         inset: 0;
         z-index: 140;
         opacity: 0;
-        background: rgba(2, 9, 12, .72);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        transition: opacity 240ms ease;
+        background: rgba(2, 9, 12, .68);
+        backdrop-filter: blur(7px) saturate(.72);
+        -webkit-backdrop-filter: blur(7px) saturate(.72);
+        transition: opacity 220ms ease;
       }
 
       .dashboard-expand-backdrop.visible { opacity: 1; }
@@ -38,14 +38,17 @@
       #viewToday .calorie-card,
       #viewToday .macro-grid,
       #waterCard {
-        cursor: zoom-in;
+        cursor: pointer;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       #viewToday .calorie-card:focus-visible,
       #viewToday .macro-grid:focus-visible,
       #waterCard:focus-visible {
-        outline: 3px solid rgba(93, 234, 216, .55);
+        outline: 3px solid rgba(93, 234, 216, .52);
         outline-offset: 4px;
       }
 
@@ -59,29 +62,32 @@
         position: fixed !important;
         z-index: 150 !important;
         margin: 0 !important;
+        min-height: 0 !important;
         max-width: none !important;
         max-height: none !important;
-        min-height: 0 !important;
         box-sizing: border-box !important;
-        cursor: zoom-out !important;
-        overflow: auto !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
         overscroll-behavior: contain;
         border-radius: 28px !important;
-        box-shadow: 0 30px 90px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255,255,255,.04) !important;
+        box-shadow:
+          0 28px 78px rgba(0, 0, 0, .48),
+          0 0 0 1px rgba(255,255,255,.025),
+          inset 0 1px 0 rgba(255,255,255,.04) !important;
         transition:
-          left 320ms cubic-bezier(.22,.8,.22,1),
-          top 320ms cubic-bezier(.22,.8,.22,1),
-          width 320ms cubic-bezier(.22,.8,.22,1),
-          height 320ms cubic-bezier(.22,.8,.22,1),
-          border-radius 320ms cubic-bezier(.22,.8,.22,1),
-          box-shadow 320ms ease !important;
+          left 290ms cubic-bezier(.2,.82,.2,1),
+          top 290ms cubic-bezier(.2,.82,.2,1),
+          width 290ms cubic-bezier(.2,.82,.2,1),
+          height 290ms cubic-bezier(.2,.82,.2,1),
+          border-radius 290ms cubic-bezier(.2,.82,.2,1),
+          box-shadow 290ms ease !important;
       }
 
       #viewToday .calorie-card.dashboard-panel-expanded {
         display: flex !important;
         flex-direction: column;
-        justify-content: center;
-        padding: clamp(24px, 6vw, 40px) !important;
+        justify-content: center !important;
+        padding: clamp(22px, 6vw, 36px) !important;
       }
 
       #viewToday .calorie-card.dashboard-panel-expanded .summary-head,
@@ -92,47 +98,65 @@
       }
 
       #viewToday .calorie-card.dashboard-panel-expanded .calorie-layout {
-        margin: clamp(24px, 5vh, 42px) 0 !important;
+        margin: 24px 0 22px !important;
       }
 
       #viewToday .calorie-card.dashboard-panel-expanded .kcal-main strong {
-        font-size: clamp(68px, 19vw, 104px) !important;
+        font-size: clamp(64px, 18vw, 96px) !important;
       }
 
       #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring {
-        transform: scale(1.12) !important;
+        transform: scale(1.04) !important;
       }
 
       #viewToday .macro-grid.dashboard-panel-expanded {
-        padding: 72px 14px 24px !important;
+        padding: 60px 8px 18px !important;
         align-items: stretch !important;
+      }
+
+      #viewToday .macro-grid.dashboard-panel-expanded::before {
+        top: 20px !important;
       }
 
       #viewToday .macro-grid.dashboard-panel-expanded .macro-card {
         min-height: 0 !important;
-        height: 100% !important;
+        height: auto !important;
+        padding: 10px 8px 14px !important;
         display: flex !important;
         flex-direction: column;
         justify-content: center !important;
+        gap: 8px;
       }
 
       #viewToday .macro-grid.dashboard-panel-expanded .macro-name {
-        font-size: clamp(12px, 3.5vw, 16px) !important;
+        font-size: clamp(11px, 3.3vw, 15px) !important;
+      }
+
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-heading small {
+        font-size: 11px !important;
+      }
+
+      #viewToday .macro-grid.dashboard-panel-expanded .macro-value {
+        margin-top: 8px !important;
       }
 
       #viewToday .macro-grid.dashboard-panel-expanded .macro-value b {
-        font-size: clamp(34px, 9vw, 52px) !important;
+        font-size: clamp(34px, 9vw, 48px) !important;
       }
 
       #viewToday .macro-grid.dashboard-panel-expanded .macro-ring strong {
-        font-size: clamp(18px, 5vw, 26px) !important;
+        font-size: clamp(18px, 5vw, 24px) !important;
+      }
+
+      #viewToday .macro-grid.dashboard-panel-expanded .mini-progress {
+        margin-top: 14px !important;
       }
 
       #waterCard.dashboard-panel-expanded {
         display: flex !important;
         flex-direction: column;
-        justify-content: center;
-        padding: clamp(24px, 6vw, 40px) !important;
+        justify-content: center !important;
+        padding: clamp(22px, 6vw, 34px) !important;
       }
 
       #waterCard.dashboard-panel-expanded .water-head,
@@ -144,32 +168,37 @@
       }
 
       #waterCard.dashboard-panel-expanded .water-value strong {
-        font-size: clamp(28px, 8vw, 44px) !important;
+        font-size: clamp(28px, 8vw, 40px) !important;
       }
 
       #waterCard.dashboard-panel-expanded .water-progress {
-        height: 15px !important;
-        margin: clamp(26px, 6vh, 44px) 0 14px !important;
+        height: 14px !important;
+        margin: 28px 0 12px !important;
       }
 
       #waterCard.dashboard-panel-expanded .water-actions {
-        margin-top: clamp(24px, 6vh, 42px) !important;
+        margin-top: 26px !important;
+      }
+
+      #waterCard.dashboard-panel-expanded .water-add,
+      #waterCard.dashboard-panel-expanded .water-undo {
+        min-height: 52px !important;
       }
 
       @media (max-width: 430px) {
         #viewToday .macro-grid.dashboard-panel-expanded {
           grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-          padding-left: 6px !important;
-          padding-right: 6px !important;
+          padding-left: 4px !important;
+          padding-right: 4px !important;
         }
 
         #viewToday .macro-grid.dashboard-panel-expanded .macro-card {
-          padding-left: 5px !important;
-          padding-right: 5px !important;
+          padding-left: 4px !important;
+          padding-right: 4px !important;
         }
 
         #viewToday .calorie-card.dashboard-panel-expanded .calorie-ring {
-          transform: scale(.98) !important;
+          transform: scale(.92) !important;
         }
       }
 
@@ -188,10 +217,6 @@
     return node?.closest?.(TARGET_SELECTOR) || null;
   }
 
-  function isInteractive(node) {
-    return Boolean(node?.closest?.(INTERACTIVE_SELECTOR));
-  }
-
   function setAccessible(target) {
     if (!target) return;
     if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '0');
@@ -208,21 +233,40 @@
     document.querySelectorAll(TARGET_SELECTOR).forEach(setAccessible);
   }
 
-  function viewportBounds() {
-    const gap = 12;
+  function availableViewport() {
+    const side = 12;
+    const top = 14;
     const nav = document.querySelector('.bottom-nav');
     const navRect = nav?.getBoundingClientRect();
-    const top = Math.max(gap, Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-top')) || gap);
-    const bottom = navRect && navRect.top > window.innerHeight * .55
-      ? Math.max(top + 240, navRect.top - gap)
-      : window.innerHeight - gap;
+    const bottom = navRect && navRect.top > window.innerHeight * .52
+      ? navRect.top - 12
+      : window.innerHeight - 12;
 
     return {
-      left: gap,
+      left: side,
       top,
-      width: Math.max(280, window.innerWidth - gap * 2),
-      height: Math.max(240, bottom - top)
+      width: Math.max(280, window.innerWidth - side * 2),
+      height: Math.max(360, bottom - top)
     };
+  }
+
+  function expandedBounds(target) {
+    const vp = availableViewport();
+    const width = vp.width;
+    let wantedHeight;
+
+    if (target.matches('.calorie-card')) {
+      wantedHeight = Math.max(460, Math.min(590, width * 1.42));
+    } else if (target.matches('.macro-grid')) {
+      wantedHeight = Math.max(480, Math.min(610, width * 1.48));
+    } else {
+      wantedHeight = Math.max(540, Math.min(680, width * 1.62));
+    }
+
+    const height = Math.min(vp.height, wantedHeight);
+    const top = vp.top + Math.max(0, (vp.height - height) / 2);
+
+    return { left: vp.left, top, width, height };
   }
 
   function ensureBackdrop() {
@@ -274,11 +318,10 @@
     target.setAttribute('aria-expanded', 'true');
     applyRect(target, start);
 
-    // Force the fixed start geometry to paint before animating to the viewport bounds.
     void target.offsetWidth;
     requestAnimationFrame(() => {
       backdrop.classList.add('visible');
-      applyRect(target, viewportBounds());
+      applyRect(target, expandedBounds(target));
     });
   }
 
@@ -294,7 +337,7 @@
 
     const backdrop = document.getElementById(BACKDROP_ID);
     backdrop?.classList.remove('visible');
-    window.setTimeout(() => backdrop?.remove(), REDUCED_MOTION ? 0 : 250);
+    window.setTimeout(() => backdrop?.remove(), REDUCED_MOTION ? 0 : 230);
   }
 
   function collapse() {
@@ -311,7 +354,7 @@
     }
 
     applyRect(target, end);
-    window.setTimeout(() => finishCollapse(target), 340);
+    window.setTimeout(() => finishCollapse(target), 310);
   }
 
   function toggle(target) {
@@ -323,12 +366,14 @@
     const target = getTarget(event.target);
     if (!target) return;
 
-    // Controls inside cards (notably hydration buttons) keep their normal behavior.
-    if (isInteractive(event.target) && event.target !== target) return;
+    // Real controls inside a card keep their action. Every other point inside the
+    // card — text, numbers, progress bars, icons and blank space — toggles it.
+    const innerControl = event.target?.closest?.(INTERACTIVE_SELECTOR);
+    if (innerControl && innerControl !== target) return;
 
     event.preventDefault();
     toggle(target);
-  });
+  }, { passive: false });
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && expanded) {
@@ -345,7 +390,7 @@
   });
 
   window.addEventListener('resize', () => {
-    if (expanded && !closing) applyRect(expanded, viewportBounds());
+    if (expanded && !closing) applyRect(expanded, expandedBounds(expanded));
   });
 
   const observer = new MutationObserver(prepareTargets);
