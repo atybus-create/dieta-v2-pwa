@@ -26,6 +26,7 @@
       './history-hydration.js?v=20260815-history-hydration1',
       './theme-manager.js?v=20260815-theme1',
       './dashboard-layout-v2.js?v=20260819-rootfix2',
+      './dashboard-expand.js?v=20260819-expand1',
       './pwa-login-safety.js?v=20260816-pwalogin1'
     ];
 
