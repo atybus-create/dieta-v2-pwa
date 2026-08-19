@@ -1,9 +1,13 @@
 (() => {
-  const MAX_EDGE = 1280;
-  const JPEG_QUALITY = 0.78;
+  const MAX_EDGE = 1600;
+  const JPEG_QUALITY = 0.80;
+  const SMALL_JPEG_BYTES = 900 * 1024;
 
   async function optimizePhoto(file) {
     if (!file || !String(file.type || '').startsWith('image/')) return file;
+
+    const isJpeg = /image\/jpe?g/i.test(String(file.type || ''));
+    if (isJpeg && Number(file.size || 0) <= SMALL_JPEG_BYTES) return file;
 
     let objectUrl = '';
     try {
@@ -37,7 +41,7 @@
       );
       if (!blob) return file;
 
-      if (scale === 1 && blob.size >= file.size) return file;
+      if (blob.size >= file.size) return file;
 
       const baseName = String(file.name || 'meal').replace(/\.[^.]+$/, '') || 'meal';
       const optimized = new File([blob], `${baseName}.jpg`, {
