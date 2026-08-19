@@ -1,9 +1,16 @@
 (() => {
   'use strict';
-  if (document.getElementById('dashboard-layout-v2-css')) return;
-  const link = document.createElement('link');
-  link.id = 'dashboard-layout-v2-css';
-  link.rel = 'stylesheet';
-  link.href = './dashboard-layout-v2.css?v=20260819-dashboard3';
-  document.head.appendChild(link);
+
+  const loadCss = (id, href) => {
+    const old = document.getElementById(id);
+    if (old) old.remove();
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  };
+
+  loadCss('dashboard-layout-v2-css', './dashboard-layout-v2.css?v=20260819-dashboard4');
+  loadCss('dashboard-card-hotfix-css', './dashboard-card-hotfix.css?v=20260819-hotfix1');
 })();
