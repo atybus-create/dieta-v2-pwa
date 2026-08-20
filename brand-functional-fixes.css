@@ -1,0 +1,44 @@
+/* Functional regression fixes after visual redesign.
+   Keep interaction modules authoritative while retaining the new visual layer. */
+
+/* Dashboard expand: the redesign's base calorie-card rule used position:relative!important
+   and was loaded after dashboard-expand.js. That prevented the expanded calorie card from
+   becoming viewport-fixed and pushed most of it outside the visible screen. */
+#viewToday .calorie-card.dashboard-panel-expanded {
+  position: fixed !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Respect the real mobile viewport and safe areas while a dashboard tile is expanded. */
+#viewToday .calorie-card.dashboard-panel-expanded,
+#viewToday .macro-grid.dashboard-panel-expanded,
+#waterCard.dashboard-panel-expanded {
+  max-width: calc(100vw - 24px) !important;
+  max-height: calc(100dvh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+}
+
+/* Meal editors: brand-redesign.css sets overflow:hidden!important on list articles.
+   These more specific rules restore the editor's own vertical scroller. */
+#todayMeals article.today-meal-editor-card.is-meal-expanded,
+#favoritesList article.favorite-editor-card.is-expanded {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+}
+
+body.today-meal-editor-open,
+body.favorite-editor-open {
+  overflow: hidden !important;
+  touch-action: auto !important;
+}
+
+/* Allow vertical gesture handling to stay with the full-screen editor, including inputs. */
+#todayMeals article.today-meal-editor-card.is-meal-expanded .today-meal-editor-body,
+#favoritesList article.favorite-editor-card.is-expanded .favorite-editor-body {
+  touch-action: pan-y !important;
+}
