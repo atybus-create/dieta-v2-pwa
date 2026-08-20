@@ -1,5 +1,5 @@
 const CACHE =
-  'wiem-co-zre-m-ai-20260820-rebrand1';
+  'wiem-co-zre-m-ai-20260820-brand1';
 
 
 const SHELL = [
@@ -8,6 +8,12 @@ const SHELL = [
   './styles.css?v=20260814-13',
   './app.js?v=20260820-rebrand1',
   './pwa-login-safety.js?v=20260816-pwalogin1',
+  './brand-redesign.js?v=20260820-brand1',
+  './brand-redesign.css?v=20260820-brand1',
+  './assets/static-splash-p1.txt?v=20260820-static1',
+  './assets/static-splash-p2.txt?v=20260820-static1',
+  './assets/static-splash-p3.txt?v=20260820-static1',
+  './assets/static-splash-p4.txt?v=20260820-static1',
   './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
