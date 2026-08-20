@@ -27,9 +27,24 @@
     }
   }
 
+  async function loadBrandRedesign() {
+    try {
+      const response = await fetch('./brand-redesign.js?v=20260820-brand1', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Nie udało się pobrać brand-redesign.js');
+      const code = await response.text();
+      (0, eval)(code);
+    } catch (error) {
+      console.error('Dieta V2 brand redesign failed:', error);
+    }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindPwaLoginSafety, { once: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      bindPwaLoginSafety();
+      loadBrandRedesign();
+    }, { once: true });
   } else {
     bindPwaLoginSafety();
+    loadBrandRedesign();
   }
 })();
