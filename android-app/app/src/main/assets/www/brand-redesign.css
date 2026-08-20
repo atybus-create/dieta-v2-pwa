@@ -1,0 +1,144 @@
+/* Wiem co Żre-m z AI — unified visual system v1 */
+:root{
+  --brand-bg:#041116;--brand-bg-2:#071a20;--brand-surface:#082129;--brand-surface-2:#0b2830;
+  --brand-text:#f3fbfa;--brand-muted:#8eabad;--brand-line:rgba(92,232,218,.17);
+  --brand-teal:#16d7cd;--brand-cyan:#3de9ec;--brand-orange:#ffb000;--brand-orange-2:#ff8d00;
+  --brand-protein:#8ce44d;--brand-carbs:#39c9ff;--brand-fat:#ff9a32;--brand-water:#38c7ff;--brand-danger:#ff6878;
+  --brand-radius-xl:28px;--brand-radius-lg:22px;--brand-radius-md:16px;
+  --brand-shadow:0 18px 54px rgba(0,0,0,.24);
+}
+#app{--bg:var(--brand-bg);--card:var(--brand-surface);--card-2:var(--brand-surface-2);--text:var(--brand-text);--muted:var(--brand-muted);--line:var(--brand-line);--teal:var(--brand-teal);--cyan:var(--brand-cyan)}
+body:not(.theme-light-active){background:radial-gradient(circle at 90% 0,rgba(22,215,205,.10),transparent 28%),linear-gradient(180deg,#041116,#06151a 55%,#041116)!important}
+#app[data-theme="dark"]{background:radial-gradient(circle at 88% -4%,rgba(22,215,205,.10),transparent 30%),linear-gradient(180deg,#041116,#06151a 52%,#041116)!important}
+#app[data-theme="light"]{--brand-bg:#f5fbf9;--brand-bg-2:#edf7f4;--brand-surface:#fff;--brand-surface-2:#f7fbfa;--brand-text:#13272c;--brand-muted:#687d80;--brand-line:rgba(25,74,72,.11);--brand-shadow:0 14px 38px rgba(31,62,59,.08);color:#13272c!important;background:radial-gradient(circle at 94% -5%,rgba(22,190,180,.11),transparent 30%),linear-gradient(180deg,#f8fcfb,#eef7f4)!important}
+
+/* Brand header */
+.topbar{border-bottom:1px solid var(--brand-line)!important;background:rgba(4,17,22,.88)!important;backdrop-filter:blur(18px) saturate(1.1)!important;box-shadow:0 12px 34px rgba(0,0,0,.12)!important}
+#app[data-theme="light"] .topbar{background:rgba(248,252,251,.92)!important;border-bottom-color:rgba(25,74,72,.09)!important;box-shadow:0 10px 28px rgba(31,62,59,.06)!important}
+.topbar .eyebrow{color:var(--brand-teal)!important;letter-spacing:.08em!important;text-transform:none!important;font-size:13px!important}
+.topbar .eyebrow::first-letter{color:var(--brand-orange)}
+.topbar h1{letter-spacing:-.04em!important}
+.logout-button,.ghost{border-color:var(--brand-line)!important;background:rgba(255,255,255,.035)!important;color:var(--brand-text)!important}
+#app[data-theme="light"] .logout-button,#app[data-theme="light"] .ghost{background:#fff!important;color:#335a58!important;border-color:rgba(25,74,72,.13)!important}
+
+/* Global surfaces */
+#app .glass-card,#app .summary-card,#app .panel,#app .cards>article,#app .upload-tile,#app .macro-grid,#app .water-card,#app .history-hydration{border:1px solid var(--brand-line)!important;border-radius:var(--brand-radius-lg)!important;background:linear-gradient(145deg,rgba(10,32,39,.97),rgba(5,20,25,.98))!important;box-shadow:var(--brand-shadow)!important}
+#app[data-theme="light"] .glass-card,#app[data-theme="light"] .summary-card,#app[data-theme="light"] .panel,#app[data-theme="light"] .cards>article,#app[data-theme="light"] .upload-tile,#app[data-theme="light"] .macro-grid,#app[data-theme="light"] .water-card,#app[data-theme="light"] .history-hydration{background:linear-gradient(145deg,#fff,#f8fbfa)!important;border-color:rgba(25,74,72,.11)!important;box-shadow:var(--brand-shadow)!important}
+#app .view-heading h2,#app .section-title h2{letter-spacing:-.045em!important}
+#app .section-kicker,#app .panel-kicker,#app .view-heading .section-kicker{color:var(--brand-teal)!important;letter-spacing:.10em!important}
+#app[data-theme="light"] .section-kicker,#app[data-theme="light"] .panel-kicker,#app[data-theme="light"] .eyebrow{color:#0a9b95!important}
+
+/* Signature bite tab */
+#viewToday .calorie-card::before,#analysisPanel::before,#viewProfile .profile-card::before{content:"AI ŻRE";position:absolute;right:18px;top:18px;z-index:3;padding:7px 30px 7px 12px;border-radius:999px;color:#321b00;background:linear-gradient(135deg,var(--brand-orange),#ffd14c);font-size:10px;font-weight:950;letter-spacing:.05em;box-shadow:0 8px 20px rgba(255,176,0,.14);pointer-events:none}
+#viewToday .calorie-card::after,#analysisPanel::after,#viewProfile .profile-card::after{content:"";position:absolute;right:14px;top:19px;z-index:4;width:12px;height:12px;border-radius:50%;background:var(--brand-bg);box-shadow:2px 10px 0 var(--brand-bg),-2px 20px 0 var(--brand-bg);pointer-events:none}
+#app[data-theme="light"] #viewToday .calorie-card::after,#app[data-theme="light"] #analysisPanel::after,#app[data-theme="light"] #viewProfile .profile-card::after{background:#fff;box-shadow:2px 10px 0 #fff,-2px 20px 0 #fff}
+
+/* Dashboard */
+#viewToday .calorie-card{position:relative!important;overflow:hidden!important;border-color:rgba(255,176,0,.26)!important;background:radial-gradient(circle at 92% 8%,rgba(255,176,0,.10),transparent 31%),radial-gradient(circle at 10% 100%,rgba(22,215,205,.09),transparent 40%),linear-gradient(145deg,#0a242a,#06171c)!important}
+#app[data-theme="light"] #viewToday .calorie-card{border-color:rgba(231,151,0,.22)!important;background:radial-gradient(circle at 92% 8%,rgba(255,176,0,.10),transparent 31%),linear-gradient(145deg,#fff,#fbfaf5)!important}
+#viewToday .calorie-card .summary-label{color:var(--brand-teal)!important}
+#viewToday .calorie-card .kcal-main strong{color:var(--brand-orange)!important;text-shadow:0 0 28px rgba(255,176,0,.08)}
+#viewToday .calorie-card .progress-lg>div{background:linear-gradient(90deg,var(--brand-orange),#ffd14c)!important;box-shadow:0 0 14px rgba(255,176,0,.24)!important}
+#viewToday .calorie-card .progress-ring{--ring-color:var(--brand-orange)!important}
+#viewToday .macro-grid{border-color:var(--brand-line)!important;background:radial-gradient(circle at 8% 0,rgba(22,215,205,.06),transparent 28%),linear-gradient(145deg,#092027,#06171c)!important}
+#app[data-theme="light"] #viewToday .macro-grid{background:linear-gradient(145deg,#fff,#f8fbfa)!important}
+#viewToday .macro-grid::before{color:var(--brand-text)!important}
+#viewToday .macro-protein .macro-name,#viewToday .macro-protein .macro-value b{color:var(--brand-protein)!important}
+#viewToday .macro-carbs .macro-name,#viewToday .macro-carbs .macro-value b{color:var(--brand-carbs)!important}
+#viewToday .macro-fat .macro-name,#viewToday .macro-fat .macro-value b{color:var(--brand-fat)!important}
+#viewToday .macro-protein .mini-progress>div{background:var(--brand-protein)!important}#viewToday .macro-carbs .mini-progress>div{background:var(--brand-carbs)!important}#viewToday .macro-fat .mini-progress>div{background:var(--brand-fat)!important}
+#waterCard{border-color:rgba(56,199,255,.20)!important;background:radial-gradient(circle at 100% 0,rgba(56,199,255,.12),transparent 34%),linear-gradient(145deg,#08232c,#061922)!important}
+#app[data-theme="light"] #waterCard{background:radial-gradient(circle at 100% 0,rgba(56,199,255,.12),transparent 34%),linear-gradient(145deg,#f5fcff,#fff)!important}
+#waterCard .water-title,#waterCard .water-value strong{color:var(--brand-text)!important}#waterCard .water-icon{color:var(--brand-water)!important;background:rgba(56,199,255,.10)!important;border-color:rgba(56,199,255,.20)!important}#waterCard .water-progress-fill{background:linear-gradient(90deg,#258ce9,var(--brand-water))!important}
+#waterCard .water-add{background:linear-gradient(135deg,#54dcff,#269fe8)!important;color:#03171d!important}
+
+/* Meal cards / favorites */
+#todayMeals article,#favoritesList article{position:relative!important;overflow:hidden!important;padding-left:20px!important;transition:transform .15s ease,border-color .15s ease!important}
+#todayMeals article::before,#favoritesList article::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--brand-teal),var(--brand-cyan))}
+#favoritesList article:nth-child(3n+2)::before{background:linear-gradient(#39c9ff,#6f9dff)}#favoritesList article:nth-child(3n)::before{background:linear-gradient(var(--brand-orange),#ff8c55)}
+#todayMeals article:active,#favoritesList article:active{transform:scale(.992)}
+#todayMeals .nutrition span:first-child,#favoritesList .nutrition span:first-child{color:var(--brand-orange)!important;font-weight:850!important}
+
+/* Add screen */
+#viewAdd .action-grid{gap:14px!important}
+#viewAdd .upload-tile{position:relative!important;overflow:hidden!important;min-height:104px!important;border-radius:24px!important}
+#viewAdd .upload-photo{border-color:rgba(255,176,0,.29)!important;background:radial-gradient(circle at 95% 0,rgba(255,176,0,.13),transparent 30%),linear-gradient(145deg,#241b08,#0b181a)!important;box-shadow:inset 4px 0 0 rgba(255,176,0,.72),var(--brand-shadow)!important}
+#app[data-theme="light"] #viewAdd .upload-photo{background:radial-gradient(circle at 95% 0,rgba(255,176,0,.13),transparent 30%),linear-gradient(145deg,#fffaf0,#fff)!important}
+#viewAdd .upload-photo .action-icon,#viewAdd .upload-photo .action-arrow{color:var(--brand-orange)!important}
+#viewAdd #showTextBtn{border-color:rgba(22,215,205,.26)!important;background:radial-gradient(circle at 95% 0,rgba(22,215,205,.11),transparent 30%),linear-gradient(145deg,#0a2428,#07181d)!important;box-shadow:inset 4px 0 0 rgba(22,215,205,.66),var(--brand-shadow)!important}
+#app[data-theme="light"] #viewAdd #showTextBtn{background:radial-gradient(circle at 95% 0,rgba(22,215,205,.10),transparent 30%),linear-gradient(145deg,#f5fffd,#fff)!important}
+#viewAdd #showTextBtn .action-icon,#viewAdd #showTextBtn .action-arrow{color:var(--brand-teal)!important}
+
+/* Analysis */
+#analysisPanel{position:relative!important;overflow:hidden!important;border-color:rgba(22,215,205,.22)!important}
+#analysisPanel .analysis-title-row{padding-right:88px!important}
+#analysisPanel .analysis-live-totals{gap:8px!important}
+#analysisPanel .analysis-live-total{border:1px solid var(--brand-line)!important;border-radius:15px!important;background:rgba(4,17,22,.42)!important}
+#app[data-theme="light"] #analysisPanel .analysis-live-total{background:#f7faf9!important}
+#analysisPanel .analysis-live-total:first-child strong{color:var(--brand-orange)!important}
+#analysisPanel .analysis-live-total:nth-child(2) strong{color:var(--brand-protein)!important}
+#analysisPanel .analysis-live-total:nth-child(3) strong{color:var(--brand-carbs)!important}
+#analysisPanel .analysis-live-total:nth-child(4) strong{color:var(--brand-fat)!important}
+#analysisPanel .analysis-item{border-color:var(--brand-line)!important;border-radius:15px!important;background:rgba(4,17,22,.36)!important}
+#app[data-theme="light"] #analysisPanel .analysis-item{background:#f7faf9!important}
+#analysisPanel .analysis-add-toggle{border-color:rgba(22,215,205,.35)!important;color:var(--brand-teal)!important;background:rgba(22,215,205,.055)!important}
+
+/* Shared buttons */
+#app .primary,#app .primary-glow,#app .favorite-editor-save,#app .today-meal-save,#app .goals-calc-run,#app .recovery-primary{border:0!important;color:#031817!important;background:linear-gradient(135deg,var(--brand-teal),#45efe2)!important;box-shadow:0 12px 28px rgba(22,215,205,.18)!important}
+#app .secondary,#app .small{color:var(--brand-teal)!important;background:rgba(22,215,205,.055)!important;border-color:rgba(22,215,205,.22)!important}
+#app[data-theme="light"] .secondary,#app[data-theme="light"] .small{background:#fff!important;color:#0a8f88!important;border-color:rgba(10,143,136,.18)!important}
+
+/* History */
+#historyDaysStrip .day-chip.active{color:#031716!important;background:linear-gradient(135deg,var(--brand-teal),var(--brand-cyan))!important;border-color:transparent!important;box-shadow:0 8px 18px rgba(22,215,205,.16)!important}
+#historyList article{border-radius:24px!important;overflow:hidden!important}
+#historyList .history-hydration{margin-top:14px!important;border-color:rgba(56,199,255,.18)!important;background:rgba(56,199,255,.055)!important;box-shadow:none!important}
+#app[data-theme="light"] #historyList .history-hydration{background:#f4fbfd!important}
+.history-hydration-title,.history-hydration-value{color:var(--brand-water)!important}.history-hydration-fill{background:linear-gradient(90deg,#258ce9,var(--brand-water))!important}
+
+/* Profile */
+#viewProfile .profile-card{position:relative!important;overflow:hidden!important;padding-right:112px!important}
+#viewProfile .profile-avatar{border:2px solid rgba(22,215,205,.22)!important;color:#031716!important;background:linear-gradient(135deg,var(--brand-teal),var(--brand-cyan))!important;box-shadow:0 12px 24px rgba(22,215,205,.16)!important}
+#viewProfile .status-dot{background:#70e072!important;box-shadow:0 0 0 5px rgba(112,224,114,.12)!important}
+#viewProfile .theme-choice{border-radius:18px!important}
+#viewProfile .theme-choice[aria-pressed="true"]{color:var(--brand-teal)!important;border-color:rgba(22,215,205,.42)!important;background:rgba(22,215,205,.08)!important;box-shadow:0 10px 22px rgba(22,215,205,.08)!important}
+#app[data-theme="light"] #viewProfile .theme-choice[aria-pressed="true"]{color:#0a8f88!important;background:#eaf9f6!important;border-color:rgba(10,143,136,.32)!important}
+
+/* Inputs */
+#app input,#app textarea,#app select,#app .unit-input{border-color:var(--brand-line)!important;border-radius:14px!important;background:rgba(3,15,19,.58)!important;color:var(--brand-text)!important}
+#app[data-theme="light"] input,#app[data-theme="light"] textarea,#app[data-theme="light"] select,#app[data-theme="light"] .unit-input{background:#fbfdfc!important;border-color:rgba(25,74,72,.13)!important;color:#13272c!important}
+#app input:focus,#app textarea:focus,#app select:focus{border-color:rgba(22,215,205,.52)!important;box-shadow:0 0 0 3px rgba(22,215,205,.08)!important}
+
+/* Editors injected by JS */
+.favorite-editor-card.is-expanded,.today-meal-editor-card.is-meal-expanded,#textPanel.manual-entry-expanded,.goals-calc-card,.recovery-card{border-color:rgba(22,215,205,.30)!important;background:radial-gradient(circle at 94% 0,rgba(22,215,205,.09),transparent 28%),linear-gradient(155deg,#0a242a,#06171c 56%)!important;box-shadow:0 0 0 100vmax rgba(2,8,11,.78),0 28px 90px rgba(0,0,0,.52)!important}
+.favorite-editor-close,.today-meal-close,.manual-entry-close{border-color:rgba(22,215,205,.40)!important;background:#0d3a3a!important;color:#e9fffc!important}
+.favorite-editor-total,.today-meal-total,.favorite-editor-item,.today-meal-item{border-color:var(--brand-line)!important;background:rgba(3,15,19,.44)!important}
+.favorite-editor-save,.today-meal-save,.analysis-add-search,.analysis-add-confirm{background:var(--brand-teal)!important;color:#031716!important;border-color:transparent!important}
+
+/* Modal system */
+.ai-confirm-overlay,.logout-modal,.goals-calc-modal,.recovery-overlay,.loading{background:rgba(2,8,11,.80)!important;backdrop-filter:blur(12px)!important}
+.ai-confirm-card,.logout-modal-card,.loading-card{border:1px solid var(--brand-line)!important;border-radius:28px!important;background:radial-gradient(circle at 90% 0,rgba(22,215,205,.07),transparent 30%),linear-gradient(145deg,#0a2228,#06171c)!important;box-shadow:0 28px 90px rgba(0,0,0,.50)!important}
+body.theme-light-active .ai-confirm-card,body.theme-light-active .logout-modal-card,body.theme-light-active .loading-card,body.theme-light-active .recovery-card,body.theme-light-active .goals-calc-card{color:#13272c!important;background:linear-gradient(145deg,#fff,#f7fbfa)!important;border-color:rgba(25,74,72,.12)!important;box-shadow:0 24px 60px rgba(31,62,59,.17)!important}
+.ai-confirm-delete,.logout-modal-confirm{background:linear-gradient(135deg,#ff7b88,#ff5367)!important}.ai-confirm-cancel,.logout-modal-cancel{border-color:var(--brand-line)!important;background:rgba(255,255,255,.035)!important;color:var(--brand-text)!important}
+body.theme-light-active .ai-confirm-cancel,body.theme-light-active .logout-modal-cancel{background:#f3f7f6!important;color:#435958!important;border-color:rgba(25,74,72,.12)!important}
+.toast{border-color:var(--brand-line)!important;background:rgba(7,27,32,.96)!important;color:var(--brand-text)!important}.offline{border-color:rgba(255,104,120,.30)!important}
+body.theme-light-active .toast{background:rgba(255,255,255,.97)!important;color:#13272c!important}
+
+/* Bottom nav */
+.bottom-nav{border-top:1px solid var(--brand-line)!important;background:rgba(4,17,22,.94)!important;box-shadow:0 -14px 36px rgba(0,0,0,.18)!important;backdrop-filter:blur(18px)!important}
+.bottom-nav button{color:#708d91!important}.bottom-nav button.active{color:var(--brand-teal)!important}.bottom-nav .nav-add{color:#031716!important;background:linear-gradient(135deg,var(--brand-teal),var(--brand-cyan))!important;box-shadow:0 8px 20px rgba(22,215,205,.24)!important}
+#app[data-theme="light"] .bottom-nav{background:rgba(255,255,255,.95)!important;border-top-color:rgba(25,74,72,.10)!important;box-shadow:0 -12px 30px rgba(31,62,59,.07)!important}#app[data-theme="light"] .bottom-nav button{color:#758687!important}#app[data-theme="light"] .bottom-nav button.active{color:#0a9b95!important}
+
+/* Mascot brand marks assembled by brand-redesign.js */
+.brand-monster-mark{position:absolute;pointer-events:none;background-image:var(--brand-splash-image);background-repeat:no-repeat;background-size:175px 310px;background-position:55% 8%;filter:saturate(1.04);opacity:.10;border-radius:50%}
+#viewToday .calorie-card .brand-monster-mark{right:-10px;bottom:-24px;width:150px;height:150px;opacity:.08}
+#analysisPanel .brand-monster-mark{right:-25px;bottom:-22px;width:130px;height:130px;opacity:.055}
+#viewProfile .profile-card .brand-monster-mark{right:10px;bottom:-10px;width:94px;height:94px;opacity:.14}
+#app[data-theme="light"] .brand-monster-mark{opacity:.055}
+
+@media(max-width:520px){
+  #viewToday .calorie-card::before,#analysisPanel::before,#viewProfile .profile-card::before{right:14px;top:14px;font-size:9px;padding:6px 26px 6px 10px}
+  #viewToday .calorie-card::after,#analysisPanel::after,#viewProfile .profile-card::after{right:10px;top:15px}
+  #viewProfile .profile-card{padding-right:90px!important}
+  #analysisPanel .analysis-title-row{padding-right:72px!important}
+}
+@media(prefers-reduced-motion:reduce){#app *{scroll-behavior:auto!important;transition-duration:1ms!important;animation-duration:1ms!important;animation-iteration-count:1!important}}
