@@ -6,7 +6,23 @@
     return /FBAN|FBAV|FB_IAB|Messenger|Instagram|TikTok|Line\/|; wv\)|\bwv\b/i.test(ua);
   }
 
+  function ensureBrandStyles() {
+    const styles = [
+      ['brandRedesignStyles', './brand-redesign.css?v=20260820-brand2'],
+      ['brandRedesignPolishStyles', './brand-redesign-polish.css?v=20260820-brand2']
+    ];
+    styles.forEach(([id, href]) => {
+      if (document.getElementById(id)) return;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
+  }
+
   function bindPwaLoginSafety() {
+    ensureBrandStyles();
     if (window.__AI_MONITOR_NATIVE__) return;
     if (embeddedBrowser()) return;
 
@@ -14,8 +30,6 @@
     const loginButton = document.getElementById('claimProfileBtn');
     const createButton = document.getElementById('createUserBtn');
 
-    // Regular browser and installed PWA must always keep the authentication
-    // controls usable. Installation remains optional outside embedded browsers.
     auth?.classList.remove('install-only');
 
     if (loginButton && typeof claimProfile === 'function') {
@@ -27,24 +41,9 @@
     }
   }
 
-  async function loadBrandRedesign() {
-    try {
-      const response = await fetch('./brand-redesign.js?v=20260820-brand1', { cache: 'no-store' });
-      if (!response.ok) throw new Error('Nie udało się pobrać brand-redesign.js');
-      const code = await response.text();
-      (0, eval)(code);
-    } catch (error) {
-      console.error('Dieta V2 brand redesign failed:', error);
-    }
-  }
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      bindPwaLoginSafety();
-      loadBrandRedesign();
-    }, { once: true });
+    document.addEventListener('DOMContentLoaded', bindPwaLoginSafety, { once: true });
   } else {
     bindPwaLoginSafety();
-    loadBrandRedesign();
   }
 })();
