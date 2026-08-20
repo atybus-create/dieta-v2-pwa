@@ -10,6 +10,7 @@ const SHELL = [
   './pwa-login-safety.js?v=20260816-pwalogin1',
   './brand-redesign.js?v=20260820-brand1',
   './brand-redesign.css?v=20260820-brand1',
+  './brand-redesign-polish.css?v=20260820-brand1',
   './assets/static-splash-p1.txt?v=20260820-static1',
   './assets/static-splash-p2.txt?v=20260820-static1',
   './assets/static-splash-p3.txt?v=20260820-static1',
