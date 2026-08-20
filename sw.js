@@ -1,12 +1,12 @@
 const CACHE =
-  'wiem-co-zre-m-ai-20260820-monster1';
+  'wiem-co-zre-m-ai-20260820-domain1';
 
 
 const SHELL = [
   './',
   './index.html',
   './styles.css?v=20260814-13',
-  './app.js?v=20260820-rebrand1',
+  './app.js?v=20260820-domain1',
   './pwa-login-safety.js?v=20260820-scroll1',
   './editor-portal.js?v=20260820-scroll1',
   './brand-redesign.css?v=20260820-brand2',

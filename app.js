@@ -37,7 +37,7 @@
     if (failed !== -1) throw new Error(`Nie udało się pobrać modułu aplikacji: ${modules[failed]}`);
     const texts = await Promise.all(responses.map(response => response.text()));
     const oldBackendBase = 'https://n8n-pi.taild8d05f.ts.net';
-    const backendBase = 'https://n8n-pi.taild8d05f.ts.net';
+    const backendBase = 'https://api.atybuslab.com';
     const routedTexts = texts.map(code => code.split(oldBackendBase).join(backendBase));
     let core = routedTexts[0]; const authOverride = routedTexts[1]; const extensions = routedTexts.slice(2); const extensionUrls = modules.slice(2);
     const oldInitHook = `document.addEventListener(\n  'DOMContentLoaded',\n  init\n);`; core = core.replace(oldInitHook, '');
