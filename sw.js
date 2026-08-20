@@ -1,20 +1,20 @@
 const CACHE =
-  'ai-monitor-zywienia-20260816-pwalogin1';
+  'wiem-co-zrem-ai-20260820-startup1';
 
 
 const SHELL = [
   './',
   './index.html',
   './styles.css?v=20260814-13',
-  './app.js?v=20260816-pwalogin1',
+  './app.js?v=20260819-favorites2',
   './pwa-login-safety.js?v=20260816-pwalogin1',
   './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
-  './manifest.webmanifest?v=20260814-13',
-  './icon.svg?v=20260814-13',
-  './icon-192.png?v=20260814-13',
-  './icon-512.png?v=20260814-13'
+  './manifest.webmanifest?v=20260820-zrem1',
+  './icon.svg?v=20260820-zrem1',
+  './icon-192.png?v=20260820-zrem1',
+  './icon-512.png?v=20260820-zrem1'
 ];
 
 
