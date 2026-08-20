@@ -21,8 +21,49 @@
     });
   }
 
+  function installRegressionFixes() {
+    if (window.__WCZAI_REGRESSION_FIXES__) return;
+    window.__WCZAI_REGRESSION_FIXES__ = true;
+
+    const style = document.createElement('style');
+    style.id = 'wczai-regression-fixes';
+    style.textContent = `
+      body.today-meal-editor-open,
+      body.favorite-editor-open {
+        overflow: hidden !important;
+        touch-action: auto !important;
+        overscroll-behavior: none !important;
+      }
+      .today-meal-editor-card.is-meal-expanded,
+      .favorite-editor-card.is-expanded {
+        overflow-y: auto !important;
+        touch-action: pan-y !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    let calorieOpenedAt = -Infinity;
+
+    document.addEventListener('pointerup', event => {
+      const calorie = event.target?.closest?.('#viewToday .calorie-card');
+      if (!calorie || calorie.classList.contains('dashboard-panel-expanded')) return;
+      calorieOpenedAt = performance.now();
+    }, true);
+
+    document.addEventListener('click', event => {
+      if (event.target?.id !== 'dashboardExpandBackdrop') return;
+      if ((performance.now() - calorieOpenedAt) > 700) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+  }
+
   function bindPwaLoginSafety() {
     ensureBrandStyles();
+    installRegressionFixes();
+
     if (window.__AI_MONITOR_NATIVE__) return;
     if (embeddedBrowser()) return;
 
