@@ -1,10 +1,8 @@
 package com.atybuslab.dieta;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,7 +17,6 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
     private static final String APP_URL = "https://dieta.atybuslab.com/";
     private static final int FILE_CHOOSER_REQUEST = 501;
-    private static final int CAMERA_PERMISSION_REQUEST = 502;
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
@@ -44,7 +41,7 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.0.1");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -55,6 +52,17 @@ public class MainActivity extends Activity {
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;", null);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                view.evaluateJavascript(
+                        "window.__AI_MONITOR_NATIVE__=true;" +
+                        "document.documentElement.classList.add('native-wrapper');" +
+                        "['installFirstBtn','installHint','installBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});",
+                        null
+                );
             }
 
             @Override
@@ -89,12 +97,7 @@ public class MainActivity extends Activity {
                 }
 
                 fileCallback = filePathCallback;
-
-                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
-                } else {
-                    launchImageChooser();
-                }
+                launchCamera();
                 return true;
             }
         });
@@ -106,25 +109,22 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void launchImageChooser() {
-        Intent contentIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        contentIntent.setType("image/*");
-
+    private void launchCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraOutputUri = createCameraOutputUri();
-        if (cameraOutputUri != null && cameraIntent.resolveActivity(getPackageManager()) != null) {
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
-            cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } else {
-            cameraIntent = null;
+
+        if (cameraOutputUri == null || cameraIntent.resolveActivity(getPackageManager()) == null) {
+            if (fileCallback != null) {
+                fileCallback.onReceiveValue(null);
+                fileCallback = null;
+            }
+            cameraOutputUri = null;
+            return;
         }
 
-        Intent chooser = Intent.createChooser(contentIntent, "Wybierz lub zrób zdjęcie");
-        if (cameraIntent != null) {
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-        }
-        startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
+        cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST);
     }
 
     private Uri createCameraOutputUri() {
@@ -148,28 +148,13 @@ public class MainActivity extends Activity {
         }
 
         Uri[] result = null;
-        if (resultCode == RESULT_OK) {
-            if (data == null || data.getData() == null) {
-                if (cameraOutputUri != null) {
-                    result = new Uri[]{cameraOutputUri};
-                }
-            } else {
-                result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
-            }
+        if (resultCode == RESULT_OK && cameraOutputUri != null) {
+            result = new Uri[]{cameraOutputUri};
         }
 
         fileCallback.onReceiveValue(result);
         fileCallback = null;
         cameraOutputUri = null;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == CAMERA_PERMISSION_REQUEST && fileCallback != null) {
-            launchImageChooser();
-        }
     }
 
     @Override

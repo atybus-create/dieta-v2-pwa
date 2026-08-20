@@ -1,19 +1,39 @@
 (() => {
   let deferredInstallPrompt = null;
 
+  function nativeApp() {
+    const ua = String(navigator.userAgent || '');
+    return window.__AI_MONITOR_NATIVE__ === true || /DietaV2Native\//i.test(ua);
+  }
+
+  function hideNativeInstallUi() {
+    window.__AI_MONITOR_NATIVE__ = true;
+    document.documentElement.classList.add('native-wrapper');
+    ['installFirstBtn', 'installHint', 'installBtn'].forEach(id => {
+      document.getElementById(id)?.remove();
+    });
+  }
+
   function standalone() {
     return (
+      nativeApp() ||
       window.matchMedia('(display-mode: standalone)').matches ||
       window.navigator.standalone === true
     );
   }
 
   function embeddedBrowser() {
+    if (nativeApp()) return false;
     const ua = String(navigator.userAgent || '');
     return /FBAN|FBAV|FB_IAB|Messenger|Instagram|TikTok|Line\/|; wv\)|\bwv\b/i.test(ua);
   }
 
   function setInstallMessage(message, embedded = false) {
+    if (nativeApp()) {
+      hideNativeInstallUi();
+      return;
+    }
+
     const hint = document.getElementById('installHint');
     if (hint) {
       hint.textContent = message;
@@ -42,6 +62,11 @@
   }
 
   function showEmbeddedScreen() {
+    if (nativeApp()) {
+      hideNativeInstallUi();
+      return;
+    }
+
     const auth = document.getElementById('authScreen');
     const app = document.getElementById('app');
     const splash = document.getElementById('startSplash');
@@ -89,6 +114,11 @@
   }
 
   window.addEventListener('beforeinstallprompt', event => {
+    if (nativeApp()) {
+      event.preventDefault();
+      hideNativeInstallUi();
+      return;
+    }
     event.preventDefault();
     deferredInstallPrompt = event;
   });
@@ -101,7 +131,16 @@
     'click',
     async event => {
       const button = event.target.closest?.('#installFirstBtn, #installBtn');
-      if (!button || standalone()) return;
+      if (!button) return;
+
+      if (nativeApp()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        hideNativeInstallUi();
+        return;
+      }
+
+      if (standalone()) return;
 
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -129,7 +168,12 @@
     true
   );
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  async function bootInstallFlow() {
+    if (nativeApp()) {
+      hideNativeInstallUi();
+      return;
+    }
+
     if (standalone()) return;
 
     if (embeddedBrowser()) {
@@ -138,5 +182,11 @@
     }
 
     await continueInRegularBrowser();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootInstallFlow, { once: true });
+  } else {
+    void bootInstallFlow();
+  }
 })();
