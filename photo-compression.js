@@ -2,6 +2,21 @@
   const MAX_EDGE = 1600;
   const JPEG_QUALITY = 0.80;
 
+  const style = document.createElement('style');
+  style.id = 'photo-loading-visual-fix';
+  style.textContent = `
+    .loading-line {
+      width: 198px !important;
+      height: 7px !important;
+    }
+    .loading-line span {
+      width: 42% !important;
+      height: calc(100% + 2px) !important;
+      margin-top: -1px !important;
+    }
+  `;
+  document.head.appendChild(style);
+
   const nextPaint = () =>
     new Promise(resolve =>
       requestAnimationFrame(() =>
