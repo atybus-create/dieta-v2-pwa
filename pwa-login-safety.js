@@ -9,7 +9,8 @@
   function ensureBrandStyles() {
     const styles = [
       ['brandRedesignStyles', './brand-redesign.css?v=20260820-brand2'],
-      ['brandRedesignPolishStyles', './brand-redesign-polish.css?v=20260820-brand2']
+      ['brandRedesignPolishStyles', './brand-redesign-polish.css?v=20260820-brand2'],
+      ['brandFunctionalFixes', './brand-functional-fixes.css?v=20260820-fix2']
     ];
     styles.forEach(([id, href]) => {
       if (document.getElementById(id)) return;
@@ -24,25 +25,6 @@
   function installRegressionFixes() {
     if (window.__WCZAI_REGRESSION_FIXES__) return;
     window.__WCZAI_REGRESSION_FIXES__ = true;
-
-    const style = document.createElement('style');
-    style.id = 'wczai-regression-fixes';
-    style.textContent = `
-      body.today-meal-editor-open,
-      body.favorite-editor-open {
-        overflow: hidden !important;
-        touch-action: auto !important;
-        overscroll-behavior: none !important;
-      }
-      .today-meal-editor-card.is-meal-expanded,
-      .favorite-editor-card.is-expanded {
-        overflow-y: auto !important;
-        touch-action: pan-y !important;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain !important;
-      }
-    `;
-    document.head.appendChild(style);
 
     let calorieOpenedAt = -Infinity;
 
