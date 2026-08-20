@@ -1,12 +1,12 @@
 const CACHE =
-  'wiem-co-zre-m-ai-20260820-domain1';
+  'wiem-co-zre-m-ai-20260820-pwa2';
 
 
 const SHELL = [
   './',
   './index.html',
   './styles.css?v=20260814-13',
-  './app.js?v=20260820-domain1',
+  './app.js?v=20260820-pwa2',
   './pwa-login-safety.js?v=20260820-scroll1',
   './editor-portal.js?v=20260820-scroll1',
   './brand-redesign.css?v=20260820-brand2',
@@ -19,7 +19,7 @@ const SHELL = [
   './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
-  './manifest.webmanifest?v=20260820-monster1',
+  './manifest.webmanifest?v=20260820-pwa2',
   './icon.svg?v=20260820-monster1',
   './icon-192.png?v=20260820-monster1',
   './icon-512.png?v=20260820-monster1',
