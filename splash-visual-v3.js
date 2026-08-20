@@ -2,6 +2,20 @@
   const splash=document.getElementById('startSplash');
   if(!splash) return;
 
+  const MIN_SPLASH_MS=5000;
+  const startedAt=performance.now();
+  let allowHide=false;
+  const keepVisible=()=>{
+    if(!allowHide && splash.classList.contains('hidden')) splash.classList.remove('hidden');
+  };
+  const observer=new MutationObserver(keepVisible);
+  observer.observe(splash,{attributes:true,attributeFilter:['class']});
+  setTimeout(()=>{
+    allowHide=true;
+    observer.disconnect();
+    splash.classList.add('hidden');
+  },Math.max(0,MIN_SPLASH_MS-(performance.now()-startedAt)));
+
   const style=document.createElement('style');
   style.id='wczai-rendered-splash-v3';
   style.textContent=`
