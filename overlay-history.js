@@ -1,88 +1,10 @@
 (() => {
   'use strict';
-
-  const STATE_KEY = '__dietaOverlay';
-  let active = null;
-  let closingFromPop = false;
-
-  function detectOpenOverlay() {
-    const favorite = document.querySelector('.favorite-editor-card.is-expanded');
-    if (favorite) return { type: 'favorite', element: favorite };
-
-    const manual = document.querySelector('#textPanel.manual-entry-expanded');
-    if (manual) return { type: 'manual-entry', element: manual };
-
-    return null;
-  }
-
-  function closeOverlay(entry) {
-    if (!entry?.element) return;
-
-    if (entry.type === 'favorite') {
-      entry.element.classList.remove('is-expanded');
-      document.body.classList.remove('favorite-editor-open');
-      return;
-    }
-
-    if (entry.type === 'manual-entry') {
-      entry.element.classList.remove('manual-entry-expanded');
-      entry.element.classList.add('hidden');
-      document.body.classList.remove('manual-entry-open');
-    }
-  }
-
-  function syncHistory() {
-    const current = detectOpenOverlay();
-
-    if (current && !active && !closingFromPop) {
-      active = current;
-      history.pushState(
-        { ...(history.state || {}), [STATE_KEY]: current.type },
-        '',
-        location.href
-      );
-      return;
-    }
-
-    if (!current && active) {
-      active = null;
-    }
-  }
-
-  window.addEventListener('popstate', () => {
-    const current = detectOpenOverlay();
-    if (!current) {
-      active = null;
-      return;
-    }
-
-    closingFromPop = true;
-    closeOverlay(current);
-    active = null;
-    queueMicrotask(() => { closingFromPop = false; });
-  });
-
-  document.addEventListener('click', event => {
-    const closeButton = event.target.closest('.favorite-editor-close, .manual-entry-close');
-    if (!closeButton) return;
-
-    const current = detectOpenOverlay();
-    if (!current) return;
-
-    if (history.state?.[STATE_KEY]) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      history.back();
-    }
-  }, true);
-
-  const observer = new MutationObserver(syncHistory);
-  observer.observe(document.documentElement, {
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class'],
-    childList: true
-  });
-
-  syncHistory();
+  const STATE_KEY='__dietaOverlay'; let active=null,closingFromPop=false;
+  function detectOpenOverlay(){const meal=document.querySelector('.today-meal-editor-card.is-meal-expanded');if(meal)return{type:'today-meal',element:meal};const favorite=document.querySelector('.favorite-editor-card.is-expanded');if(favorite)return{type:'favorite',element:favorite};const manual=document.querySelector('#textPanel.manual-entry-expanded');if(manual)return{type:'manual-entry',element:manual};return null}
+  function closeOverlay(entry){if(!entry?.element)return;if(entry.type==='today-meal'){entry.element.classList.remove('is-meal-expanded');document.body.classList.remove('today-meal-editor-open');return}if(entry.type==='favorite'){entry.element.classList.remove('is-expanded');document.body.classList.remove('favorite-editor-open');return}if(entry.type==='manual-entry'){entry.element.classList.remove('manual-entry-expanded');entry.element.classList.add('hidden');document.body.classList.remove('manual-entry-open')}}
+  function syncHistory(){const current=detectOpenOverlay();if(current&&!active&&!closingFromPop){active=current;history.pushState({...(history.state||{}),[STATE_KEY]:current.type},'',location.href);return}if(!current&&active)active=null}
+  window.addEventListener('popstate',()=>{const current=detectOpenOverlay();if(!current){active=null;return}closingFromPop=true;closeOverlay(current);active=null;queueMicrotask(()=>{closingFromPop=false})});
+  document.addEventListener('click',event=>{const closeButton=event.target.closest('.favorite-editor-close,.manual-entry-close,.today-meal-close');if(!closeButton)return;const current=detectOpenOverlay();if(!current)return;if(history.state?.[STATE_KEY]){event.preventDefault();event.stopImmediatePropagation();history.back()}},true);
+  new MutationObserver(syncHistory).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});syncHistory();
 })();
