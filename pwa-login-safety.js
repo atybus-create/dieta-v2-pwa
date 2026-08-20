@@ -22,6 +22,15 @@
     });
   }
 
+  function ensureEditorPortal() {
+    if (document.getElementById('editorPortalScript')) return;
+    const script = document.createElement('script');
+    script.id = 'editorPortalScript';
+    script.src = './editor-portal.js?v=20260820-scroll1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
+
   function installRegressionFixes() {
     if (window.__WCZAI_REGRESSION_FIXES__) return;
     window.__WCZAI_REGRESSION_FIXES__ = true;
@@ -44,6 +53,7 @@
 
   function bindPwaLoginSafety() {
     ensureBrandStyles();
+    ensureEditorPortal();
     installRegressionFixes();
 
     if (window.__AI_MONITOR_NATIVE__) return;
