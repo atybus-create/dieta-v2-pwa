@@ -1,0 +1,78 @@
+/* Mobile calorie-card root fix. Loaded last, after dashboard-layout-v2.css. */
+@media (max-width: 900px) {
+  #viewToday .summary-card.calorie-card {
+    box-sizing: border-box !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 20px 20px 18px !important;
+    overflow: hidden !important;
+  }
+
+  #viewToday .summary-card.calorie-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  #viewToday .summary-card.calorie-card .calorie-orb {
+    position: absolute !important;
+    right: -58px !important;
+    top: -92px !important;
+    width: 190px !important;
+    height: 190px !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+  }
+
+  #viewToday .summary-card.calorie-card .summary-head {
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 0 14px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .calorie-layout {
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 0 14px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .kcal-main strong {
+    font-size: clamp(50px, 14vw, 66px) !important;
+    line-height: .92 !important;
+  }
+
+  #viewToday .summary-card.calorie-card .calorie-ring {
+    transform: scale(.9) !important;
+    transform-origin: center !important;
+  }
+
+  #viewToday .summary-card.calorie-card .progress-lg {
+    margin: 0 !important;
+    height: 10px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .remaining-row {
+    margin-top: 12px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #viewToday .summary-card.calorie-card {
+    padding: 18px 16px 16px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .calorie-layout {
+    gap: 8px !important;
+  }
+
+  #viewToday .summary-card.calorie-card .calorie-ring {
+    transform: scale(.84) !important;
+  }
+}

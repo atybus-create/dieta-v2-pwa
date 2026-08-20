@@ -14,13 +14,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.webkit.WebViewAssetLoader;
+
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://dieta.atybuslab.com/";
+    private static final String LOCAL_APP_URL = "https://appassets.androidplatform.net/assets/www/index.html";
     private static final int FILE_CHOOSER_REQUEST = 501;
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
     private Uri cameraOutputUri;
+    private WebViewAssetLoader assetLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,10 @@ public class MainActivity extends Activity {
 
         getWindow().setStatusBarColor(Color.parseColor("#071014"));
         getWindow().setNavigationBarColor(Color.parseColor("#071014"));
+
+        assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
 
         webView = new WebView(this);
         setContentView(webView);
@@ -41,7 +48,7 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.0.1");
+        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.0 StandaloneBundle/1");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -49,9 +56,14 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view, android.webkit.WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
+            @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;", null);
+                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;window.__AI_MONITOR_STANDALONE_BUNDLE__=true;", null);
             }
 
             @Override
@@ -59,6 +71,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 view.evaluateJavascript(
                         "window.__AI_MONITOR_NATIVE__=true;" +
+                        "window.__AI_MONITOR_STANDALONE_BUNDLE__=true;" +
                         "document.documentElement.classList.add('native-wrapper');" +
                         "['installFirstBtn','installHint','installBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});",
                         null
@@ -73,7 +86,7 @@ public class MainActivity extends Activity {
 
                 if (("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
                         && host != null
-                        && (host.equals("dieta.atybuslab.com") || host.endsWith(".atybuslab.com"))) {
+                        && (host.equals("appassets.androidplatform.net") || host.equals("api.atybuslab.com"))) {
                     return false;
                 }
 
@@ -103,7 +116,7 @@ public class MainActivity extends Activity {
         });
 
         if (savedInstanceState == null) {
-            webView.loadUrl(APP_URL);
+            webView.loadUrl(LOCAL_APP_URL);
         } else {
             webView.restoreState(savedInstanceState);
         }

@@ -1,0 +1,380 @@
+/* Dieta V2 - jasny motyw. Aktywny wyłącznie po zalogowaniu. */
+
+#app[data-theme="light"] {
+  color-scheme: light;
+  color: #17212b;
+  background:
+    radial-gradient(circle at 10% -10%, rgba(56, 140, 255, .10), transparent 30%),
+    radial-gradient(circle at 100% 18%, rgba(98, 183, 113, .08), transparent 28%),
+    linear-gradient(180deg, #fbfaf7 0%, #f5f3ee 100%);
+}
+
+#app[data-theme="light"] .topbar {
+  background: rgba(251, 250, 247, .92);
+  border-bottom-color: rgba(31, 44, 56, .08);
+  box-shadow: 0 10px 30px rgba(43, 52, 61, .05);
+  backdrop-filter: blur(18px);
+}
+
+#app[data-theme="light"] .topbar h1,
+#app[data-theme="light"] .view-heading h2,
+#app[data-theme="light"] .section-title h2,
+#app[data-theme="light"] h3,
+#app[data-theme="light"] strong,
+#app[data-theme="light"] b,
+#app[data-theme="light"] .macro-name,
+#app[data-theme="light"] .kcal-main,
+#app[data-theme="light"] .profile-card-copy strong {
+  color: #17212b;
+}
+
+#app[data-theme="light"] .eyebrow,
+#app[data-theme="light"] .section-kicker,
+#app[data-theme="light"] .summary-label,
+#app[data-theme="light"] .panel-kicker {
+  color: #3169bd;
+}
+
+#app[data-theme="light"] .topbar-date,
+#app[data-theme="light"] .view-heading p,
+#app[data-theme="light"] .target-copy,
+#app[data-theme="light"] .remaining-row,
+#app[data-theme="light"] .meta,
+#app[data-theme="light"] small,
+#app[data-theme="light"] .profile-card-copy p,
+#app[data-theme="light"] .panel-heading p,
+#app[data-theme="light"] .analysis-subtitle small,
+#app[data-theme="light"] .history-hydration-meta,
+#app[data-theme="light"] .history-hydration-missing {
+  color: #697583;
+}
+
+#app[data-theme="light"] .summary-card,
+#app[data-theme="light"] .macro-card,
+#app[data-theme="light"] .glass-card,
+#app[data-theme="light"] .panel,
+#app[data-theme="light"] .cards > article,
+#app[data-theme="light"] .upload-tile,
+#app[data-theme="light"] .history-hydration {
+  background: rgba(255, 255, 255, .94);
+  border-color: rgba(31, 44, 56, .10);
+  box-shadow: 0 14px 34px rgba(37, 47, 57, .07);
+}
+
+#app[data-theme="light"] .calorie-card {
+  background:
+    radial-gradient(circle at 95% 10%, rgba(91, 180, 106, .12), transparent 32%),
+    #fff;
+}
+
+#app[data-theme="light"] .macro-card {
+  background: #fff;
+}
+
+#app[data-theme="light"] .macro-protein .macro-icon {
+  background: rgba(71, 169, 91, .11);
+  color: #3f9d54;
+}
+
+#app[data-theme="light"] .macro-carbs .macro-icon {
+  background: rgba(37, 111, 232, .10);
+  color: #216bdd;
+}
+
+#app[data-theme="light"] .macro-fat .macro-icon {
+  background: rgba(240, 145, 50, .12);
+  color: #e48528;
+}
+
+#app[data-theme="light"] input,
+#app[data-theme="light"] textarea,
+#app[data-theme="light"] select,
+#app[data-theme="light"] .unit-input {
+  color: #17212b;
+  background: #fbfbfa;
+  border-color: rgba(31, 44, 56, .14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+
+#app[data-theme="light"] input::placeholder,
+#app[data-theme="light"] textarea::placeholder {
+  color: #99a2ac;
+}
+
+#app[data-theme="light"] .analysis-item,
+#app[data-theme="light"] .history-meals > div {
+  color: #26323e;
+  background: #fafaf8;
+  border-color: rgba(31, 44, 56, .08);
+}
+
+#app[data-theme="light"] .pill,
+#app[data-theme="light"] .month-chip,
+#app[data-theme="light"] .day-chip {
+  color: #42505d;
+  background: #f2f4f5;
+  border-color: rgba(31, 44, 56, .10);
+}
+
+#app[data-theme="light"] .day-chip.active {
+  color: #fff;
+  background: linear-gradient(135deg, #2d72df, #1f5fc8);
+  border-color: transparent;
+}
+
+#app[data-theme="light"] .primary,
+#app[data-theme="light"] .primary-glow {
+  color: #fff;
+  background: linear-gradient(135deg, #246bd9, #175ac2);
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(31, 100, 208, .22);
+}
+
+#app[data-theme="light"] .secondary,
+#app[data-theme="light"] .small,
+#app[data-theme="light"] .logout-button,
+#app[data-theme="light"] .ghost {
+  color: #245aa5;
+  background: #fff;
+  border-color: rgba(38, 93, 168, .18);
+}
+
+#app[data-theme="light"] .danger-link {
+  color: #c5493f;
+}
+
+#app[data-theme="light"] .profile-avatar {
+  color: #fff;
+  background: linear-gradient(135deg, #6e8fe0, #376ed0);
+  box-shadow: 0 10px 24px rgba(50, 101, 194, .20);
+}
+
+#app[data-theme="light"] .status-dot {
+  background: #48aa5d;
+  box-shadow: 0 0 0 5px rgba(72, 170, 93, .12);
+}
+
+#app[data-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, .95);
+  border-top-color: rgba(31, 44, 56, .09);
+  box-shadow: 0 -14px 32px rgba(37, 47, 57, .07);
+  backdrop-filter: blur(18px);
+}
+
+#app[data-theme="light"] .bottom-nav button {
+  color: #7a8490;
+}
+
+#app[data-theme="light"] .bottom-nav button.active {
+  color: #1764d6;
+}
+
+#app[data-theme="light"] .bottom-nav .nav-add {
+  background: linear-gradient(135deg, #2b73e4, #1d5fc6);
+  color: #fff;
+  box-shadow: 0 9px 20px rgba(31, 100, 208, .25);
+}
+
+#app[data-theme="light"] .progress,
+#app[data-theme="light"] .mini-progress,
+#app[data-theme="light"] .history-hydration-bar {
+  background: rgba(79, 99, 117, .10);
+}
+
+#app[data-theme="light"] .history-hydration {
+  border-color: rgba(30, 117, 218, .14);
+  background: linear-gradient(180deg, rgba(237, 247, 255, .96), #fff);
+}
+
+#app[data-theme="light"] .history-hydration-title,
+#app[data-theme="light"] .history-hydration-value {
+  color: #1f65b7;
+}
+
+/* Czytelne pierścienie w jasnym motywie */
+#app[data-theme="light"] .progress-ring {
+  background: conic-gradient(
+    var(--ring-color) calc(var(--p) * 1%),
+    #e6eaee 0
+  );
+  box-shadow: 0 10px 24px rgba(37, 47, 57, .10);
+}
+
+#app[data-theme="light"] .progress-ring::before {
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(31, 44, 56, .08),
+    0 1px 3px rgba(37, 47, 57, .04);
+}
+
+#app[data-theme="light"] .progress-ring strong {
+  color: #17212b;
+  text-shadow: none;
+}
+
+#app[data-theme="light"] .progress-ring small {
+  color: #697583;
+}
+
+/* Pełny jasny wariant kafla nawodnienia. Reguły są celowo bardziej
+   specyficzne niż style wstrzykiwane przez water-tracker.js. */
+#app[data-theme="light"] .water-card {
+  border: 1px solid rgba(38, 123, 210, .15);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(76, 184, 255, .12), transparent 36%),
+    linear-gradient(180deg, #f5fbff 0%, #ffffff 100%);
+  box-shadow: 0 16px 36px rgba(34, 74, 104, .09);
+}
+
+#app[data-theme="light"] .water-card::after {
+  background: radial-gradient(circle, rgba(75, 183, 255, .14), transparent 67%);
+}
+
+#app[data-theme="light"] .water-icon {
+  color: #1976d2;
+  background: #eaf6ff;
+  border-color: rgba(25, 118, 210, .16);
+}
+
+#app[data-theme="light"] .water-title,
+#app[data-theme="light"] .water-value strong {
+  color: #17212b;
+}
+
+#app[data-theme="light"] .water-sub,
+#app[data-theme="light"] .water-value span,
+#app[data-theme="light"] .water-progress-copy,
+#app[data-theme="light"] #waterBreakdown {
+  color: #607789 !important;
+}
+
+#app[data-theme="light"] .water-progress {
+  background: #e4eef5;
+  border-color: rgba(25, 118, 210, .08);
+}
+
+#app[data-theme="light"] .water-progress-fill {
+  background: linear-gradient(90deg, #1976d2, #37b8f3);
+  box-shadow: 0 0 14px rgba(55, 184, 243, .20);
+}
+
+#app[data-theme="light"] .water-add {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2196e8, #1976d2);
+  box-shadow: 0 10px 22px rgba(25, 118, 210, .20);
+}
+
+#app[data-theme="light"] .water-undo {
+  color: #3f6177;
+  background: #ffffff;
+  border-color: rgba(38, 93, 130, .17);
+  box-shadow: 0 5px 14px rgba(37, 47, 57, .05);
+}
+
+#app[data-theme="light"] .water-add:disabled,
+#app[data-theme="light"] .water-undo:disabled {
+  opacity: .48;
+}
+
+#app[data-theme="light"] .theme-panel {
+  overflow: hidden;
+}
+
+#app[data-theme="light"] .theme-choice,
+#app .theme-choice {
+  appearance: none;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+#app .theme-choice:active {
+  transform: scale(.98);
+}
+
+#app .theme-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#app .theme-choice svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#app[data-theme="light"] .theme-choice {
+  color: #5e6873;
+  background: #f8f8f6;
+  border: 1px solid rgba(31, 44, 56, .11);
+}
+
+#app[data-theme="light"] .theme-choice[aria-pressed="true"] {
+  color: #145fce;
+  background: #eef5ff;
+  border-color: #2a72df;
+  box-shadow: 0 8px 20px rgba(31, 100, 208, .12);
+}
+
+#app[data-theme="dark"] .theme-choice {
+  color: #9ab0b2;
+  background: rgba(255, 255, 255, .035);
+  border: 1px solid rgba(119, 220, 205, .12);
+}
+
+#app[data-theme="dark"] .theme-choice[aria-pressed="true"] {
+  color: #6de8d6;
+  background: rgba(53, 198, 183, .10);
+  border-color: rgba(92, 232, 214, .42);
+}
+
+body.theme-light-active .loading {
+  background: rgba(244, 243, 239, .72);
+}
+
+body.theme-light-active .loading-card,
+body.theme-light-active .logout-modal-card {
+  color: #17212b;
+  background: #fff;
+  border-color: rgba(31, 44, 56, .10);
+  box-shadow: 0 24px 70px rgba(38, 48, 58, .18);
+}
+
+body.theme-light-active .loading-card p,
+body.theme-light-active .logout-modal-card p,
+body.theme-light-active .logout-modal-kicker {
+  color: #6c7782;
+}
+
+body.theme-light-active .toast {
+  color: #17212b;
+  background: rgba(255, 255, 255, .96);
+  border-color: rgba(31, 44, 56, .10);
+  box-shadow: 0 14px 38px rgba(37, 47, 57, .15);
+}
+
+body.theme-light-active .logout-modal-cancel {
+  color: #33404b;
+  background: #f4f5f5;
+  border-color: rgba(31, 44, 56, .10);
+}
+
+@media (max-width: 560px) {
+  #app .theme-choice-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

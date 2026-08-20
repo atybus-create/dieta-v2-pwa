@@ -1,0 +1,44 @@
+/* Wiem co Żre-m z AI — auth, overlay and light-mode polish */
+.auth-screen{background:radial-gradient(circle at 86% 8%,rgba(22,215,205,.11),transparent 28%),radial-gradient(circle at 12% 92%,rgba(255,176,0,.06),transparent 30%),linear-gradient(180deg,#041116,#06171c)!important}
+.auth-shell{position:relative}
+.auth-intro{position:relative;overflow:hidden;border-radius:30px;padding:28px 18px 24px!important;border:1px solid rgba(92,232,218,.12);background:linear-gradient(145deg,rgba(10,34,40,.82),rgba(4,18,23,.58));box-shadow:0 22px 60px rgba(0,0,0,.18)}
+.auth-intro::after{content:"ŻRE";position:absolute;right:-8px;bottom:-22px;color:rgba(255,176,0,.055);font:950 94px/.8 system-ui,sans-serif;letter-spacing:-.08em;transform:rotate(-8deg);pointer-events:none}
+.auth-intro .brand-mark{color:#321b00!important;background:linear-gradient(135deg,#ffb000,#ffd14c)!important;box-shadow:0 0 0 1px rgba(255,209,76,.20),0 18px 42px rgba(255,176,0,.10)!important}
+.auth-intro .welcome-eyebrow{color:#16d7cd!important}
+.auth-intro h1{color:#f3fbfa!important}.auth-intro .muted{color:#8eabad!important}
+.auth-panel,.install-card{border-color:rgba(92,232,218,.15)!important;background:linear-gradient(145deg,rgba(10,32,39,.97),rgba(5,20,25,.98))!important;box-shadow:0 18px 54px rgba(0,0,0,.22)!important}
+.auth-panel .panel-kicker{color:#16d7cd!important}.auth-panel h2{color:#f3fbfa!important}
+.auth-screen input{color:#f3fbfa!important;background:rgba(3,15,19,.62)!important;border-color:rgba(92,232,218,.15)!important}
+.auth-screen input:focus{border-color:rgba(22,215,205,.52)!important;box-shadow:0 0 0 3px rgba(22,215,205,.08)!important}
+.auth-screen .primary,.auth-screen .primary-glow{border:0!important;color:#031817!important;background:linear-gradient(135deg,#16d7cd,#45efe2)!important;box-shadow:0 12px 28px rgba(22,215,205,.18)!important}
+.auth-screen .install-card .icon-box{color:#ffb000!important;background:rgba(255,176,0,.09)!important}.auth-screen .install-card:hover{border-color:rgba(255,176,0,.28)!important}
+.recovery-link{color:#16d7cd!important}.security-note{color:#78989b!important}
+
+/* Overlays rendered outside #app */
+.goals-calc-card,.recovery-card{border-color:rgba(22,215,205,.28)!important;background:radial-gradient(circle at 92% 4%,rgba(22,215,205,.10),transparent 30%),linear-gradient(155deg,#0a242a,#06171c 56%)!important;color:#f3fbfa!important}
+.goals-calc-card .section-kicker,.recovery-card .section-kicker{color:#16d7cd!important}
+.goals-calc-card input,.goals-calc-card .gc-dropdown-button,.recovery-card input{color:#f3fbfa!important;background:#06171c!important;border-color:rgba(92,232,218,.16)!important}
+.goals-calc-card input:focus,.goals-calc-card .gc-dropdown.open .gc-dropdown-button,.recovery-card input:focus{border-color:rgba(22,215,205,.52)!important;box-shadow:0 0 0 3px rgba(22,215,205,.08)!important}
+.goals-calc-run,.recovery-primary{border:0!important;color:#031817!important;background:linear-gradient(135deg,#16d7cd,#45efe2)!important;box-shadow:0 12px 28px rgba(22,215,205,.18)!important}
+.goals-calc-use,.recovery-secondary{border-color:rgba(92,232,218,.16)!important;color:#d9efed!important;background:#0b242a!important}
+.goals-calc-result{border-color:rgba(22,215,205,.16)!important;background:rgba(22,215,205,.055)!important}
+.goals-result-main{color:#ffb000!important}.gc-option.selected{color:#16d7cd!important;background:rgba(22,215,205,.08)!important}
+
+/* Light mode for injected full-screen editors and modals */
+body.theme-light-active .favorite-editor-card.is-expanded,body.theme-light-active .today-meal-editor-card.is-meal-expanded,body.theme-light-active #textPanel.manual-entry-expanded{color:#13272c!important;border-color:rgba(10,143,136,.18)!important;background:radial-gradient(circle at 94% 0,rgba(22,190,180,.08),transparent 28%),linear-gradient(155deg,#fff,#f6fbf9 58%)!important;box-shadow:0 0 0 100vmax rgba(28,50,48,.26),0 24px 70px rgba(31,62,59,.18)!important}
+body.theme-light-active .favorite-editor-item,body.theme-light-active .today-meal-item,body.theme-light-active .favorite-editor-total,body.theme-light-active .today-meal-total{color:#13272c!important;background:#f6faf9!important;border-color:rgba(25,74,72,.10)!important}
+body.theme-light-active .favorite-editor-grams,body.theme-light-active .today-meal-grams,body.theme-light-active .favorite-editor-search-input,body.theme-light-active .favorite-editor-new-grams,body.theme-light-active .today-meal-search input,body.theme-light-active .today-meal-grams-form input,body.theme-light-active #textPanel.manual-entry-expanded #mealText{color:#13272c!important;background:#fbfdfc!important;border-color:rgba(25,74,72,.13)!important}
+body.theme-light-active .favorite-editor-close,body.theme-light-active .today-meal-close,body.theme-light-active .manual-entry-close{color:#0b504c!important;background:#dff5f1!important;border-color:rgba(10,143,136,.20)!important}
+body.theme-light-active .favorite-editor-total small,body.theme-light-active .today-meal-total small,body.theme-light-active .favorite-editor-kcal,body.theme-light-active .today-meal-kcal,body.theme-light-active .favorite-editor-found,body.theme-light-active .today-meal-found{color:#687d80!important}
+
+body.theme-light-active .goals-calc-card,body.theme-light-active .recovery-card{color:#13272c!important;border-color:rgba(25,74,72,.12)!important;background:linear-gradient(145deg,#fff,#f7fbfa)!important;box-shadow:0 24px 60px rgba(31,62,59,.17)!important}
+body.theme-light-active .goals-calc-card input,body.theme-light-active .goals-calc-card .gc-dropdown-button,body.theme-light-active .recovery-card input{color:#13272c!important;background:#fbfdfc!important;border-color:rgba(25,74,72,.13)!important}
+body.theme-light-active .gc-dropdown-menu{background:#fff!important;border-color:rgba(25,74,72,.12)!important;box-shadow:0 18px 40px rgba(31,62,59,.14)!important}body.theme-light-active .gc-option{color:#314845!important}body.theme-light-active .gc-option.selected{color:#0a8f88!important;background:#eaf9f6!important}
+body.theme-light-active .goals-calc-use,body.theme-light-active .recovery-secondary{color:#345b57!important;background:#f4f8f7!important;border-color:rgba(25,74,72,.12)!important}
+body.theme-light-active .goals-calc-result{background:#effaf7!important;border-color:rgba(10,143,136,.13)!important}
+
+/* Make destructive / neutral language visually consistent */
+.ai-confirm-icon,.logout-modal-icon{border-color:rgba(255,104,120,.18)!important;background:rgba(255,104,120,.08)!important;color:#ff7887!important}
+.loading-card .spinner{border-color:rgba(22,215,205,.18)!important;border-top-color:#16d7cd!important}
+
+@media(max-width:520px){.auth-intro{padding:24px 14px 20px!important;border-radius:25px}.auth-intro::after{font-size:76px}.auth-panel{border-radius:22px!important}}
