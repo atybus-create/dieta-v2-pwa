@@ -1,5 +1,5 @@
 const CACHE =
-  'wiem-co-zre-m-ai-20260820-scroll1';
+  'wiem-co-zre-m-ai-20260820-monster1';
 
 
 const SHELL = [
@@ -19,10 +19,12 @@ const SHELL = [
   './recovery-complete-message.js?v=20260816-recovery2',
   './theme-manager.js?v=20260815-theme1',
   './theme-light.css?v=20260815-theme1',
-  './manifest.webmanifest?v=20260820-rebrand1',
-  './icon.svg?v=20260820-rebrand1',
-  './icon-192.png?v=20260820-rebrand1',
-  './icon-512.png?v=20260820-rebrand1'
+  './manifest.webmanifest?v=20260820-monster1',
+  './icon.svg?v=20260820-monster1',
+  './icon-192.png?v=20260820-monster1',
+  './icon-512.png?v=20260820-monster1',
+  './icon-maskable-512.png?v=20260820-monster1',
+  './apple-touch-icon.png?v=20260820-monster1'
 ];
 
 
