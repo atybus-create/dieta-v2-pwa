@@ -2,6 +2,7 @@
   'use strict';
 
   const STYLE_ID = 'brandRedesignStyles';
+  const POLISH_STYLE_ID = 'brandRedesignPolishStyles';
   const SPLASH_VAR = '--brand-splash-image';
   const PARTS = [
     './assets/static-splash-p1.txt?v=20260820-static1',
@@ -10,13 +11,18 @@
     './assets/static-splash-p4.txt?v=20260820-static1'
   ];
 
-  function ensureStylesheet() {
-    if (document.getElementById(STYLE_ID)) return;
+  function ensureStylesheet(id, href) {
+    if (document.getElementById(id)) return;
     const link = document.createElement('link');
-    link.id = STYLE_ID;
+    link.id = id;
     link.rel = 'stylesheet';
-    link.href = './brand-redesign.css?v=20260820-brand1';
+    link.href = href;
     document.head.appendChild(link);
+  }
+
+  function ensureStylesheets() {
+    ensureStylesheet(STYLE_ID, './brand-redesign.css?v=20260820-brand1');
+    ensureStylesheet(POLISH_STYLE_ID, './brand-redesign-polish.css?v=20260820-brand1');
   }
 
   async function loadBrandImage() {
@@ -45,7 +51,7 @@
   }
 
   function decorate() {
-    ensureStylesheet();
+    ensureStylesheets();
     addMark(document.querySelector('#viewToday .calorie-card'));
     addMark(document.getElementById('analysisPanel'));
     addMark(document.querySelector('#viewProfile .profile-card'));
@@ -54,7 +60,7 @@
     if (topBrand) topBrand.textContent = 'Wiem co Żre-m z AI';
   }
 
-  ensureStylesheet();
+  ensureStylesheets();
   loadBrandImage();
   decorate();
 
