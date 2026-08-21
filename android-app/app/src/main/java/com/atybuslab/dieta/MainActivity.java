@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.1 StandaloneBundle/2");
+        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.2 StandaloneBundle/2");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
