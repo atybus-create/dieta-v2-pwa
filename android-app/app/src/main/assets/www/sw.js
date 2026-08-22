@@ -1,5 +1,5 @@
 const CACHE =
-  'wiem-co-zre-m-ai-20260820-refresh1';
+  'wiem-co-zre-m-ai-20260822-legal-refresh1';
 
 
 const SHELL = [
@@ -25,7 +25,10 @@ const SHELL = [
   './icon-192.png?v=20260820-monster1',
   './icon-512.png?v=20260820-monster1',
   './icon-maskable-512.png?v=20260820-monster1',
-  './apple-touch-icon.png?v=20260820-monster1'
+  './apple-touch-icon.png?v=20260820-monster1',
+  './regulamin.html?v=20260822-identity-clean1',
+  './polityka-prywatnosci.html?v=20260822-identity-clean1',
+  './usun-konto.html?v=20260822-identity-clean1'
 ];
 
 
