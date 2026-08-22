@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TERMS_VERSION = '2026-08-22-v1';
+  const TERMS_VERSION = '2026-08-22-v2';
   const AI_CONSENT_VERSION = '2026-08-22-v1';
   const PRIVACY_VERSION = '2026-08-22-v1';
   const APP_VERSION = '1.1.2';
@@ -99,7 +99,7 @@
     overlay = document.createElement('div');
     overlay.id = 'termsAcceptanceModal';
     overlay.className = 'legal-overlay hidden';
-    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>profil możesz również trwale usunąć samodzielnie po potwierdzeniu PIN-em.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><p class="legal-note">Informacje o przetwarzaniu danych znajdziesz w <button id="termsPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION}.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
+    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>aplikacja jest przeznaczona wyłącznie dla osób, które ukończyły 18 lat,</li><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>profil możesz również trwale usunąć samodzielnie po potwierdzeniu PIN-em.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><p class="legal-note">Informacje o przetwarzaniu danych znajdziesz w <button id="termsPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION} i potwierdzam, że mam ukończone 18 lat.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
     document.body.appendChild(overlay);
     const check = document.getElementById('termsAcceptCheck');
     const button = document.getElementById('termsAcceptBtn');
@@ -216,7 +216,7 @@
     if (!create) return;
     const label = document.createElement('label');
     label.className = 'legal-check';
-    label.innerHTML = `<input id="registrationTermsCheck" type="checkbox"><span>Akceptuję <button id="registrationTermsOpen" class="legal-link" type="button">Regulamin aplikacji</button>.</span>`;
+    label.innerHTML = `<input id="registrationTermsCheck" type="checkbox"><span>Akceptuję <button id="registrationTermsOpen" class="legal-link" type="button">Regulamin aplikacji</button> i potwierdzam, że mam ukończone 18 lat.</span>`;
     create.insertAdjacentElement('beforebegin', label);
     const note = document.createElement('p');
     note.className = 'legal-note';
@@ -286,7 +286,7 @@
     ensureRegistrationTerms();
     const checked = document.getElementById('registrationTermsCheck')?.checked === true;
     if (!checked) {
-      setAuthError('Aby utworzyć profil, zaakceptuj Regulamin aplikacji.');
+      setAuthError('Aby utworzyć profil, zaakceptuj Regulamin aplikacji i potwierdź, że masz ukończone 18 lat.');
       document.getElementById('registrationTermsCheck')?.focus();
       return;
     }
