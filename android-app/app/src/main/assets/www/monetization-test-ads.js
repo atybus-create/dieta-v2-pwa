@@ -4,6 +4,8 @@
   if (!window.__AI_MONITOR_NATIVE__ || !window.AndroidAds) return;
 
   const EVENT_API = 'https://api.atybuslab.com/webhook/dieta-v2-monetization-event';
+  const TEST_APP_VERSION = '1.1.3-test';
+  const TERMS_VERSION = '2026-08-22-v2';
   const originalApi = api;
   let rewardedResolver = null;
   let rewardedTimer = null;
@@ -158,12 +160,26 @@
 
   api = async function monetizedApi(action, payload = {}, file = null) {
     const normalized = String(action || '').trim().toLowerCase();
+    let requestPayload = payload || {};
+
+    if (normalized === 'user_create') {
+      const termsCheck = document.getElementById('registrationTermsCheck');
+      if (!termsCheck?.checked) {
+        throw new Error('Aby utworzyć konto, zaakceptuj Regulamin i potwierdź ukończenie 18 lat.');
+      }
+      requestPayload = {
+        ...requestPayload,
+        termsAccepted: true,
+        termsVersion: TERMS_VERSION,
+        appVersion: TEST_APP_VERSION
+      };
+    }
 
     if (normalized === 'analyze_text' || normalized === 'analyze_photo') {
       await ensureAiAccess();
     }
 
-    const data = await originalApi(action, payload, file);
+    const data = await originalApi(action, requestPayload, file);
     handleMonetization(normalized, data);
     return data;
   };
@@ -213,7 +229,7 @@
       try {
         await monetizationEvent('native_shown');
       } catch (_) {
-        // Jak wyżej: błąd telemetrii nie blokuje działania aplikacji testowej.
+        // Jak wyżej: błąd telemetrii nie blokuje działania aplikacji.
       }
     }
   };
