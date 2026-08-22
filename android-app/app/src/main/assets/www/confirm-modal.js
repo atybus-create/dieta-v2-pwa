@@ -16,7 +16,7 @@
       .ai-confirm-overlay {
         position: fixed;
         inset: 0;
-        z-index: 10000;
+        z-index: 10100;
         display: grid;
         place-items: center;
         padding: 18px;
