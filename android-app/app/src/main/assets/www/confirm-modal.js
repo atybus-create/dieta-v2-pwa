@@ -288,15 +288,35 @@
     return heading ? heading.slice(0, 120) : '';
   }
 
+  function removeDeletedMealFromView(mealId) {
+    const button = [...document.querySelectorAll('[data-del]')]
+      .find(item => String(item.dataset.del || '') === String(mealId));
+    const article = button?.closest('article');
+
+    article?.classList.remove('is-meal-expanded');
+    document.body.classList.remove('today-meal-editor-open');
+    article?.remove();
+  }
+
   async function performDelete(kind, value) {
     try {
       if (kind === 'meal') {
         if (typeof loading === 'function') {
           loading(true, 'Usuwam posiłek…', 'Aktualizuję dzisiejszy bilans.');
         }
+
         await api('meal_delete', { mealId: value });
+        removeDeletedMealFromView(value);
+
         if (typeof toast === 'function') toast('Posiłek usunięty');
-        if (typeof loadDashboard === 'function') await loadDashboard();
+
+        if (typeof loadDashboard === 'function') {
+          try {
+            await loadDashboard();
+          } catch (refreshError) {
+            console.warn('Dashboard refresh after meal delete failed', refreshError);
+          }
+        }
         return;
       }
 
