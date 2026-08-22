@@ -3,6 +3,7 @@
 
   const TERMS_VERSION = '2026-08-22-v1';
   const AI_CONSENT_VERSION = '2026-08-22-v1';
+  const PRIVACY_VERSION = '2026-08-22-v1';
   const APP_VERSION = '1.1.2';
   const CONSENTS_API = API.replace(/\/dieta-v2$/, '/dieta-v2-consents');
   const AI_ACTIONS = new Set(['analyze_text', 'analyze_photo', 'ingredient_search']);
@@ -18,6 +19,7 @@
       .legal-check{display:flex!important;align-items:flex-start;gap:10px;margin:14px 0 4px!important;padding:13px 14px;border:1px solid rgba(112,235,218,.18);border-radius:14px;background:rgba(112,235,218,.05);font-weight:600!important;line-height:1.42}
       .legal-check input{width:20px!important;height:20px!important;min-width:20px;margin:1px 0 0!important;accent-color:#49d8c5}
       .legal-link{border:0;background:transparent;color:#74eadb;font:inherit;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
+      .legal-note{margin:10px 0 4px;color:#9db3b4;font-size:13px;line-height:1.45}
       .legal-overlay{position:fixed;inset:0;z-index:13000;display:grid;place-items:center;padding:18px;background:rgba(2,8,11,.9);backdrop-filter:blur(10px)}
       .legal-overlay.hidden{display:none!important}
       .legal-card{width:min(94vw,520px);max-height:min(88vh,760px);overflow:auto;box-sizing:border-box;padding:22px;border-radius:24px;border:1px solid rgba(112,235,218,.22);background:linear-gradient(145deg,#102027,#081318);box-shadow:0 30px 95px rgba(0,0,0,.56);color:#edf7f6}
@@ -44,6 +46,20 @@
       overlay.innerHTML = `<div class="legal-card" style="width:min(96vw,760px)"><h2>Regulamin aplikacji</h2><p class="legal-status">Wersja ${TERMS_VERSION}</p><iframe class="legal-frame" src="./regulamin.html?v=${encodeURIComponent(TERMS_VERSION)}" title="Regulamin aplikacji"></iframe><div class="legal-actions"><button id="termsDocumentClose" class="legal-secondary" type="button">Zamknij</button></div></div>`;
       document.body.appendChild(overlay);
       document.getElementById('termsDocumentClose').onclick = () => overlay.classList.add('hidden');
+    }
+    overlay.classList.remove('hidden');
+  }
+
+  function openPrivacyDocument() {
+    injectStyles();
+    let overlay = document.getElementById('privacyDocumentModal');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'privacyDocumentModal';
+      overlay.className = 'legal-overlay hidden';
+      overlay.innerHTML = `<div class="legal-card" style="width:min(96vw,760px)"><h2>Polityka prywatności</h2><p class="legal-status">Wersja ${PRIVACY_VERSION}</p><iframe class="legal-frame" src="./polityka-prywatnosci.html?v=${encodeURIComponent(PRIVACY_VERSION)}" title="Polityka prywatności"></iframe><div class="legal-actions"><button id="privacyDocumentClose" class="legal-secondary" type="button">Zamknij</button></div></div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('privacyDocumentClose').onclick = () => overlay.classList.add('hidden');
     }
     overlay.classList.remove('hidden');
   }
@@ -83,12 +99,13 @@
     overlay = document.createElement('div');
     overlay.id = 'termsAcceptanceModal';
     overlay.className = 'legal-overlay hidden';
-    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>profil możesz również trwale usunąć samodzielnie po potwierdzeniu PIN-em.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION}.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
+    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>profil możesz również trwale usunąć samodzielnie po potwierdzeniu PIN-em.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><p class="legal-note">Informacje o przetwarzaniu danych znajdziesz w <button id="termsPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION}.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
     document.body.appendChild(overlay);
     const check = document.getElementById('termsAcceptCheck');
     const button = document.getElementById('termsAcceptBtn');
     check.onchange = () => { button.disabled = !check.checked; };
     document.getElementById('termsReadFull').onclick = openDocument;
+    document.getElementById('termsPrivacyOpen').onclick = openPrivacyDocument;
     return overlay;
   }
 
@@ -139,11 +156,12 @@
     overlay = document.createElement('div');
     overlay.id = 'aiConsentModal';
     overlay.className = 'legal-overlay hidden';
-    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="aiConsentTitle"><div class="section-kicker">Analiza z wykorzystaniem AI</div><h2 id="aiConsentTitle">Zanim uruchomimy analizę</h2><p>Aby rozpoznać posiłek, przesłane zdjęcie lub opis jest przekazywany do naszego backendu i może zostać przekazany do zewnętrznej usługi AI (Google Gemini) w celu wykonania analizy.</p><ul><li>wynik jest szacunkiem i może zawierać błędy,</li><li>sprawdź składniki oraz ilości przed zapisaniem,</li><li>aplikacja nie zastępuje lekarza ani dietetyka.</li></ul><label class="legal-check"><input id="aiConsentCheck" type="checkbox"><span>Zgadzam się na przetwarzanie przesyłanych zdjęć, opisów i danych związanych z żywieniem w celu wykonania analizy AI.</span></label><p id="aiConsentError" class="legal-error hidden"></p><div class="legal-actions"><button id="aiConsentAccept" class="legal-primary" type="button" disabled>Zgadzam się i rozpocznij analizę</button><button id="aiConsentCancel" class="legal-secondary" type="button">Nie teraz</button></div></div>`;
+    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="aiConsentTitle"><div class="section-kicker">Analiza z wykorzystaniem AI</div><h2 id="aiConsentTitle">Zanim uruchomimy analizę</h2><p>Aby rozpoznać posiłek, przesłane zdjęcie lub opis jest przekazywany do naszego backendu i może zostać przekazany do zewnętrznej usługi AI (Google Gemini) w celu wykonania analizy.</p><ul><li>wynik jest szacunkiem i może zawierać błędy,</li><li>sprawdź składniki oraz ilości przed zapisaniem,</li><li>aplikacja nie zastępuje lekarza ani dietetyka.</li></ul><p class="legal-note">Szczegóły znajdziesz w <button id="aiPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="aiConsentCheck" type="checkbox"><span>Zgadzam się na przetwarzanie przesyłanych zdjęć, opisów i danych związanych z żywieniem w celu wykonania analizy AI.</span></label><p id="aiConsentError" class="legal-error hidden"></p><div class="legal-actions"><button id="aiConsentAccept" class="legal-primary" type="button" disabled>Zgadzam się i rozpocznij analizę</button><button id="aiConsentCancel" class="legal-secondary" type="button">Nie teraz</button></div></div>`;
     document.body.appendChild(overlay);
     const check = document.getElementById('aiConsentCheck');
     const button = document.getElementById('aiConsentAccept');
     check.onchange = () => { button.disabled = !check.checked; };
+    document.getElementById('aiPrivacyOpen').onclick = openPrivacyDocument;
     return overlay;
   }
 
@@ -200,7 +218,12 @@
     label.className = 'legal-check';
     label.innerHTML = `<input id="registrationTermsCheck" type="checkbox"><span>Akceptuję <button id="registrationTermsOpen" class="legal-link" type="button">Regulamin aplikacji</button>.</span>`;
     create.insertAdjacentElement('beforebegin', label);
+    const note = document.createElement('p');
+    note.className = 'legal-note';
+    note.innerHTML = `Przed utworzeniem profilu zapoznaj się także z <button id="registrationPrivacyOpen" class="legal-link" type="button">Polityką prywatności</button>.`;
+    label.insertAdjacentElement('afterend', note);
     document.getElementById('registrationTermsOpen').onclick = event => { event.preventDefault(); openDocument(); };
+    document.getElementById('registrationPrivacyOpen').onclick = event => { event.preventDefault(); openPrivacyDocument(); };
   }
 
   function updateLegalPanel() {
@@ -220,9 +243,10 @@
     const panel = document.createElement('div');
     panel.id = 'legalPrivacyPanel';
     panel.className = 'panel glass-card legal-panel';
-    panel.innerHTML = `<div class="panel-heading compact"><div><h3>Prywatność i zgody</h3><p>Zarządzaj Regulaminem i zgodą na analizę AI.</p></div></div><div class="legal-panel-actions"><div class="legal-panel-row"><div><strong>Regulamin</strong><div class="legal-status">Wersja ${TERMS_VERSION}</div></div><button id="settingsTermsOpen" class="legal-secondary" type="button">Otwórz</button></div><div class="legal-panel-row"><div><strong>Analiza AI</strong><div><span id="aiConsentBadge" class="legal-pill off">Nieaktywna</span></div></div><button id="aiConsentManage" class="legal-secondary" type="button">Włącz analizę AI</button></div></div>`;
+    panel.innerHTML = `<div class="panel-heading compact"><div><h3>Prywatność i zgody</h3><p>Dokumenty i ustawienia związane z prywatnością oraz analizą AI.</p></div></div><div class="legal-panel-actions"><div class="legal-panel-row"><div><strong>Regulamin</strong><div class="legal-status">Wersja ${TERMS_VERSION}</div></div><button id="settingsTermsOpen" class="legal-secondary" type="button">Otwórz</button></div><div class="legal-panel-row"><div><strong>Polityka prywatności</strong><div class="legal-status">Wersja ${PRIVACY_VERSION}</div></div><button id="settingsPrivacyOpen" class="legal-secondary" type="button">Otwórz</button></div><div class="legal-panel-row"><div><strong>Analiza AI</strong><div><span id="aiConsentBadge" class="legal-pill off">Nieaktywna</span></div></div><button id="aiConsentManage" class="legal-secondary" type="button">Włącz analizę AI</button></div></div>`;
     theme.insertAdjacentElement('afterend', panel);
     document.getElementById('settingsTermsOpen').onclick = openDocument;
+    document.getElementById('settingsPrivacyOpen').onclick = openPrivacyDocument;
     document.getElementById('aiConsentManage').onclick = async () => {
       if (consentState.aiConsentAccepted) {
         if (!window.confirm('Wycofać zgodę na analizę AI? Po wycofaniu zdjęcia, tekst i wyszukiwanie składników wymagające AI będą zablokowane.')) return;
