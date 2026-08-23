@@ -18,12 +18,12 @@
 #startSplash{padding:0!important;background:#041116!important;overflow:hidden!important}
 .wczai-static-wrap{position:fixed;inset:0;background:#041116;overflow:hidden}
 .wczai-static-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
-/* RC3: wider mask and loader. The loader now occupies ~73% of screen width, safely inside the mask and away from screen edges. */
-.wczai-static-loader-cover{position:absolute;left:12%;right:11%;bottom:7.2%;height:66px;border-radius:28px;background:linear-gradient(90deg,rgba(2,17,20,.995),rgba(4,29,31,.99),rgba(2,16,19,.995));box-shadow:0 0 24px rgba(0,18,20,.36)}
-.wczai-static-loader{position:absolute;left:14%;right:13%;bottom:9.65%;height:20px;border-radius:999px;background:#06262b;border:1.5px solid rgba(0,238,238,.82);box-shadow:0 0 14px rgba(0,238,238,.28);overflow:hidden}
+/* RC4: loader widened by another ~5 percentage points while preserving safe screen margins. */
+.wczai-static-loader-cover{position:absolute;left:9.5%;right:8.5%;bottom:7.2%;height:66px;border-radius:28px;background:linear-gradient(90deg,rgba(2,17,20,.995),rgba(4,29,31,.99),rgba(2,16,19,.995));box-shadow:0 0 24px rgba(0,18,20,.36)}
+.wczai-static-loader{position:absolute;left:11.5%;right:10.5%;bottom:9.65%;height:20px;border-radius:999px;background:#06262b;border:1.5px solid rgba(0,238,238,.82);box-shadow:0 0 14px rgba(0,238,238,.28);overflow:hidden}
 .wczai-static-loader>span{display:block;height:100%;width:100%;transform:scaleX(.02);transform-origin:left;border-radius:inherit;background:linear-gradient(90deg,#0fe7e4,#7df7f0 72%,#efffff);box-shadow:0 0 18px rgba(70,244,235,.8);animation:wczStaticLoad 3s linear forwards}
 @keyframes wczStaticLoad{to{transform:scaleX(1)}}
-@media(max-width:380px){.wczai-static-loader-cover{left:11.5%;right:10.5%;height:58px}.wczai-static-loader{left:13.5%;right:12.5%;height:17px;bottom:9.55%}}
+@media(max-width:380px){.wczai-static-loader-cover{left:9%;right:8%;height:58px}.wczai-static-loader{left:11%;right:10%;height:17px;bottom:9.55%}}
 @media(prefers-reduced-motion:reduce){.wczai-static-loader>span{animation:none;transform:scaleX(1)}}
 `;
   document.head.appendChild(style);
