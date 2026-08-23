@@ -4,26 +4,63 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.webkit.WebViewAssetLoader;
+
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdView;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 
 public class MainActivity extends Activity {
     private static final String LOCAL_APP_URL = "https://appassets.androidplatform.net/assets/www/index.html";
     private static final int FILE_CHOOSER_REQUEST = 501;
 
+    // Oficjalne jednostki DEMO Google AdMob. Tylko build testowy.
+    private static final String REWARDED_TEST_ID = "ca-app-pub-3940256099942544/5224354917";
+    private static final String INTERSTITIAL_TEST_ID = "ca-app-pub-3940256099942544/1033173712";
+    private static final String NATIVE_TEST_ID = "ca-app-pub-3940256099942544/2247696110";
+
     private WebView webView;
+    private FrameLayout rootFrame;
     private ValueCallback<Uri[]> fileCallback;
     private Uri cameraOutputUri;
     private WebViewAssetLoader assetLoader;
+
+    private RewardedAd rewardedAd;
+    private InterstitialAd interstitialAd;
+    private boolean rewardedLoading = false;
+    private boolean interstitialLoading = false;
+    private NativeAd currentNativeAd;
+    private View nativeAdContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +73,13 @@ public class MainActivity extends Activity {
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .build();
 
+        rootFrame = new FrameLayout(this);
         webView = new WebView(this);
-        setContentView(webView);
+        rootFrame.addView(webView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+        setContentView(rootFrame);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -48,11 +90,18 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.2 StandaloneBundle/2");
+        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.5 StandaloneBundle/3 MonetizationTest/1");
+
+        webView.addJavascriptInterface(new MonetizationBridge(), "AndroidMonetization");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+        MobileAds.initialize(this, initializationStatus -> {
+            preloadRewarded(false);
+            preloadInterstitial(false);
+        });
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -63,7 +112,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;window.__AI_MONITOR_STANDALONE_BUNDLE__=true;", null);
+                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;window.__AI_MONITOR_STANDALONE_BUNDLE__=true;window.__WCZAI_MONETIZATION_TEST__=true;", null);
             }
 
             @Override
@@ -72,6 +121,7 @@ public class MainActivity extends Activity {
                 view.evaluateJavascript(
                         "window.__AI_MONITOR_NATIVE__=true;" +
                         "window.__AI_MONITOR_STANDALONE_BUNDLE__=true;" +
+                        "window.__WCZAI_MONETIZATION_TEST__=true;" +
                         "document.documentElement.classList.add('native-wrapper');" +
                         "['installFirstBtn','installHint','installBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});",
                         null
@@ -120,6 +170,247 @@ public class MainActivity extends Activity {
         } else {
             webView.restoreState(savedInstanceState);
         }
+    }
+
+    private final class MonetizationBridge {
+        @JavascriptInterface
+        public void showRewarded() {
+            runOnUiThread(() -> showRewardedInternal());
+        }
+
+        @JavascriptInterface
+        public void showInterstitial() {
+            runOnUiThread(() -> showInterstitialInternal());
+        }
+
+        @JavascriptInterface
+        public void showIngredientNative() {
+            runOnUiThread(() -> showNativeInternal());
+        }
+    }
+
+    private void preloadRewarded(boolean showAfterLoad) {
+        if (rewardedLoading) return;
+        if (rewardedAd != null) {
+            if (showAfterLoad) showRewardedInternal();
+            return;
+        }
+        rewardedLoading = true;
+        RewardedAd.load(this, REWARDED_TEST_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull RewardedAd ad) {
+                rewardedLoading = false;
+                rewardedAd = ad;
+                if (showAfterLoad) showRewardedInternal();
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError error) {
+                rewardedLoading = false;
+                rewardedAd = null;
+                if (showAfterLoad) notifyAdResult("rewarded", false);
+            }
+        });
+    }
+
+    private void showRewardedInternal() {
+        if (rewardedAd == null) {
+            preloadRewarded(true);
+            return;
+        }
+
+        RewardedAd ad = rewardedAd;
+        rewardedAd = null;
+        final boolean[] rewardEarned = {false};
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                notifyAdResult("rewarded", rewardEarned[0]);
+                preloadRewarded(false);
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                notifyAdResult("rewarded", false);
+                preloadRewarded(false);
+            }
+        });
+        ad.show(this, rewardItem -> rewardEarned[0] = true);
+    }
+
+    private void preloadInterstitial(boolean showAfterLoad) {
+        if (interstitialLoading) return;
+        if (interstitialAd != null) {
+            if (showAfterLoad) showInterstitialInternal();
+            return;
+        }
+        interstitialLoading = true;
+        InterstitialAd.load(this, INTERSTITIAL_TEST_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull InterstitialAd ad) {
+                interstitialLoading = false;
+                interstitialAd = ad;
+                if (showAfterLoad) showInterstitialInternal();
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError error) {
+                interstitialLoading = false;
+                interstitialAd = null;
+                if (showAfterLoad) notifyAdResult("interstitial", false);
+            }
+        });
+    }
+
+    private void showInterstitialInternal() {
+        if (interstitialAd == null) {
+            preloadInterstitial(true);
+            return;
+        }
+        InterstitialAd ad = interstitialAd;
+        interstitialAd = null;
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                notifyAdResult("interstitial", true);
+                preloadInterstitial(false);
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                notifyAdResult("interstitial", false);
+                preloadInterstitial(false);
+            }
+        });
+        ad.show(this);
+    }
+
+    private void showNativeInternal() {
+        AdLoader loader = new AdLoader.Builder(this, NATIVE_TEST_ID)
+                .forNativeAd(nativeAd -> {
+                    if (isFinishing() || isDestroyed()) {
+                        nativeAd.destroy();
+                        notifyAdResult("native", false);
+                        return;
+                    }
+                    renderNativeAd(nativeAd);
+                    notifyAdResult("native", true);
+                })
+                .withAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError error) {
+                        notifyAdResult("native", false);
+                    }
+                })
+                .build();
+        loader.loadAd(new AdRequest.Builder().build());
+    }
+
+    private void renderNativeAd(NativeAd nativeAd) {
+        removeNativeAd();
+        currentNativeAd = nativeAd;
+
+        NativeAdView adView = new NativeAdView(this);
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#102027"));
+        background.setCornerRadius(dp(18));
+        background.setStroke(dp(1), Color.parseColor("#2F746C"));
+        adView.setBackground(background);
+        adView.setPadding(dp(14), dp(10), dp(14), dp(10));
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        adView.addView(row, new NativeAdView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        LinearLayout textColumn = new LinearLayout(this);
+        textColumn.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        row.addView(textColumn, textParams);
+
+        TextView label = new TextView(this);
+        label.setText("REKLAMA TESTOWA");
+        label.setTextColor(Color.parseColor("#63DECE"));
+        label.setTextSize(10);
+        textColumn.addView(label);
+
+        TextView headline = new TextView(this);
+        headline.setTextColor(Color.WHITE);
+        headline.setTextSize(15);
+        headline.setTypeface(null, android.graphics.Typeface.BOLD);
+        headline.setText(nativeAd.getHeadline());
+        textColumn.addView(headline);
+        adView.setHeadlineView(headline);
+
+        TextView body = new TextView(this);
+        body.setTextColor(Color.parseColor("#A9BFC0"));
+        body.setTextSize(12);
+        if (nativeAd.getBody() != null) {
+            body.setText(nativeAd.getBody());
+            textColumn.addView(body);
+            adView.setBodyView(body);
+        }
+
+        Button cta = new Button(this);
+        cta.setAllCaps(false);
+        cta.setText(nativeAd.getCallToAction() == null ? "Więcej" : nativeAd.getCallToAction());
+        row.addView(cta, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(44)));
+        adView.setCallToActionView(cta);
+
+        TextView close = new TextView(this);
+        close.setText("  ×  ");
+        close.setTextColor(Color.WHITE);
+        close.setTextSize(22);
+        close.setGravity(Gravity.CENTER);
+        close.setOnClickListener(v -> removeNativeAd());
+        row.addView(close, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        adView.setNativeAd(nativeAd);
+
+        FrameLayout container = new FrameLayout(this);
+        container.setPadding(dp(10), dp(6), dp(10), dp(12));
+        container.addView(adView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM
+        );
+        rootFrame.addView(container, params);
+        nativeAdContainer = container;
+
+        container.postDelayed(() -> {
+            if (nativeAdContainer == container) removeNativeAd();
+        }, 20000);
+    }
+
+    private void removeNativeAd() {
+        if (nativeAdContainer != null) {
+            rootFrame.removeView(nativeAdContainer);
+            nativeAdContainer = null;
+        }
+        if (currentNativeAd != null) {
+            currentNativeAd.destroy();
+            currentNativeAd = null;
+        }
+    }
+
+    private void notifyAdResult(String type, boolean success) {
+        if (webView == null) return;
+        String safeType = type.replace("'", "");
+        webView.post(() -> webView.evaluateJavascript(
+                "window.__wczMonetizationAdResult&&window.__wczMonetizationAdResult('" + safeType + "'," + (success ? "true" : "false") + ");",
+                null
+        ));
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void launchCamera() {
@@ -174,6 +465,13 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         webView.saveState(outState);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        removeNativeAd();
+        if (webView != null) webView.destroy();
+        super.onDestroy();
     }
 
     @Override
