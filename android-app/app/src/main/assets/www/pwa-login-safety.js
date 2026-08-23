@@ -51,10 +51,25 @@
     }, true);
   }
 
-  function bindPwaLoginSafety() {
+  async function loadMonetizationClient() {
+    if (window.__WCZAI_MONETIZATION_CLIENT_LOADED__) return;
+    window.__WCZAI_MONETIZATION_CLIENT_LOADED__ = true;
+    try {
+      const response = await fetch('./monetization-client.js?v=20260823-finaltest1', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const code = await response.text();
+      eval(code);
+    } catch (error) {
+      window.__WCZAI_MONETIZATION_CLIENT_LOADED__ = false;
+      console.error('Monetization client failed:', error);
+    }
+  }
+
+  async function bindPwaLoginSafety() {
     ensureBrandStyles();
     ensureEditorPortal();
     installRegressionFixes();
+    await loadMonetizationClient();
 
     const auth = document.getElementById('authScreen');
     const loginButton = document.getElementById('claimProfileBtn');
@@ -84,7 +99,7 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindPwaLoginSafety, { once: true });
+    document.addEventListener('DOMContentLoaded', () => { bindPwaLoginSafety(); }, { once: true });
   } else {
     bindPwaLoginSafety();
   }
