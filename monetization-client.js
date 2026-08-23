@@ -48,7 +48,7 @@
         <div class="mon-kicker">Plan FREE</div>
         <h2 id="rewardedGateTitle">Kolejna analiza po reklamie</h2>
         <p>W planie FREE dwie pierwsze analizy AI każdego dnia są bez reklamy. Każda kolejna analiza wymaga krótkiej reklamy nagradzanej.</p>
-        <p class="mon-highlight">Obejrzyj reklamę testową, aby odblokować tę analizę. Możesz też wybrać plan PLUS lub VIP.</p>
+        <p class="mon-highlight">Obejrzyj reklamę testową, aby odblokować tę analizę. Możesz też wybrać PLUS za 9,99 zł/mies. lub VIP za 49,99 zł/mies.</p>
         <div class="mon-actions">
           <button id="rewardedWatchBtn" class="mon-primary" type="button">Obejrzyj reklamę i analizuj</button>
           <button id="rewardedPlansBtn" class="mon-secondary" type="button">Zobacz plany subskrypcyjne</button>
@@ -73,9 +73,9 @@
         <h2 id="plansTitle">Wybierz sposób korzystania</h2>
         <p>Subskrypcje PLUS i VIP będą rozliczane przez Google Play. W tym APK testujemy zachowanie planów i reklamy testowe — płatność nie jest jeszcze uruchamiana.</p>
         <div class="mon-plans">
-          <div class="mon-plan" data-plan="free"><div class="mon-plan-head"><strong>FREE</strong><span class="mon-pill">bez opłat</span></div><ul><li>2 analizy AI dziennie bez reklamy</li><li>do 10 analiz dziennie po reklamach nagradzanych</li><li>małe reklamy przy części wyszukiwań składników</li></ul></div>
-          <div class="mon-plan" data-plan="plus"><div class="mon-plan-head"><strong>PLUS</strong><span class="mon-pill">subskrypcja</span></div><ul><li>do 10 analiz AI dziennie</li><li>bez reklam nagradzanych przed analizą</li><li>reklamy pełnoekranowe po analizach 3, 6 i 9</li></ul></div>
-          <div class="mon-plan" data-plan="vip"><div class="mon-plan-head"><strong>VIP</strong><span class="mon-pill">subskrypcja</span></div><ul><li>do 50 analiz AI dziennie</li><li>bez reklam</li><li>najwyższy limit korzystania</li></ul></div>
+          <div class="mon-plan" data-plan="free"><div class="mon-plan-head"><strong>FREE</strong><span class="mon-pill">bez opłat</span></div><ul><li>2 analizy AI dziennie bez reklamy</li><li>do 20 analiz dziennie po reklamach nagradzanych</li><li>małe reklamy przy części wyszukiwań składników</li></ul></div>
+          <div class="mon-plan" data-plan="plus"><div class="mon-plan-head"><strong>PLUS</strong><span class="mon-pill">9,99 zł / mies.</span></div><ul><li>do 20 analiz AI dziennie</li><li>bez reklam nagradzanych przed analizą</li><li>reklamy pełnoekranowe po analizach 4, 8, 12 i 16</li></ul></div>
+          <div class="mon-plan" data-plan="vip"><div class="mon-plan-head"><strong>VIP</strong><span class="mon-pill">49,99 zł / mies.</span></div><ul><li>do 50 analiz AI dziennie</li><li>bez reklam</li><li>najwyższy limit korzystania</li></ul></div>
         </div>
         <div class="mon-actions"><button id="plansCloseBtn" class="mon-primary" type="button">Wróć</button></div>
       </div>`;
@@ -203,7 +203,7 @@
     ensurePlanPanel();
     const plan = String(status?.plan || 'free').toUpperCase();
     const used = Number(status?.aiSuccessCount || 0);
-    const max = Number(status?.aiMaxPerDay || (plan === 'VIP' || plan === 'FRIENDS' ? 50 : 10));
+    const max = Number(status?.aiMaxPerDay || (plan === 'VIP' || plan === 'FRIENDS' ? 50 : 20));
     const name = document.getElementById('monCurrentPlan');
     const badge = document.getElementById('monPlanBadge');
     const copy = document.getElementById('monPlanCopy');
