@@ -8,7 +8,7 @@ on:
       - '.github/workflows/android-apk.yml'
   push:
     branches:
-      - 'release-final-monetization-*'
+      - 'release-final-*'
     paths:
       - 'android-app/**'
       - '.github/workflows/android-apk.yml'
@@ -40,13 +40,13 @@ jobs:
         run: gradle -p android-app assembleDebug bundleRelease --no-daemon
       - name: Collect artifacts
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.2.0-rc1.apk
-          cp android-app/app/build/outputs/bundle/release/app-release.aab Wiem-co-Zre-m-z-AI-v1.2.0-rc1-unsigned.aab
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.2.0-rc2.apk
+          cp android-app/app/build/outputs/bundle/release/app-release.aab Wiem-co-Zre-m-z-AI-v1.2.0-rc2-unsigned.aab
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.2.0-rc1
+          name: Wiem-co-Zre-m-z-AI-v1.2.0-rc2
           path: |
-            Wiem-co-Zre-m-z-AI-v1.2.0-rc1.apk
-            Wiem-co-Zre-m-z-AI-v1.2.0-rc1-unsigned.aab
+            Wiem-co-Zre-m-z-AI-v1.2.0-rc2.apk
+            Wiem-co-Zre-m-z-AI-v1.2.0-rc2-unsigned.aab
           if-no-files-found: error
