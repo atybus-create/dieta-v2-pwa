@@ -56,12 +56,23 @@
     ensureEditorPortal();
     installRegressionFixes();
 
-    if (window.__AI_MONITOR_NATIVE__) return;
-    if (embeddedBrowser()) return;
-
     const auth = document.getElementById('authScreen');
     const loginButton = document.getElementById('claimProfileBtn');
     const createButton = document.getElementById('createUserBtn');
+
+    // Android ładuje moduły rozszerzeń po bazowym init(). Musimy ponownie
+    // podpiąć finalne funkcje po ich opakowaniu (m.in. zgody/Regulamin).
+    if (window.__AI_MONITOR_NATIVE__) {
+      if (loginButton && typeof claimProfile === 'function') {
+        loginButton.onclick = () => claimProfile();
+      }
+      if (createButton && typeof createUser === 'function') {
+        createButton.onclick = () => createUser();
+      }
+      return;
+    }
+
+    if (embeddedBrowser()) return;
 
     auth?.classList.remove('install-only');
 
