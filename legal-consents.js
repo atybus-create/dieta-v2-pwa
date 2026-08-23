@@ -1,9 +1,9 @@
 (() => {
   'use strict';
 
-  const TERMS_VERSION = '2026-08-22-v2';
+  const TERMS_VERSION = '2026-08-23-v3';
   const AI_CONSENT_VERSION = '2026-08-22-v1';
-  const PRIVACY_VERSION = '2026-08-22-v1';
+  const PRIVACY_VERSION = '2026-08-23-v2';
   const APP_VERSION = '1.1.2';
   const CONSENTS_API = API.replace(/\/dieta-v2$/, '/dieta-v2-consents');
   const AI_ACTIONS = new Set(['analyze_text', 'analyze_photo', 'ingredient_search']);
@@ -99,7 +99,7 @@
     overlay = document.createElement('div');
     overlay.id = 'termsAcceptanceModal';
     overlay.className = 'legal-overlay hidden';
-    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>aplikacja jest przeznaczona wyłącznie dla osób, które ukończyły 18 lat,</li><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>profil możesz również trwale usunąć samodzielnie po potwierdzeniu PIN-em.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><p class="legal-note">Informacje o przetwarzaniu danych znajdziesz w <button id="termsPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION} i potwierdzam, że mam ukończone 18 lat.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
+    overlay.innerHTML = `<div class="legal-card" role="dialog" aria-modal="true" aria-labelledby="termsAcceptTitle"><div class="section-kicker">Wymagana akceptacja</div><h2 id="termsAcceptTitle">Regulamin aplikacji</h2><p>Przed dalszym korzystaniem z aplikacji zapoznaj się z aktualnym Regulaminem.</p><ul><li>aplikacja jest przeznaczona wyłącznie dla osób, które ukończyły 18 lat,</li><li>wyniki AI są szacunkowe i mogą zawierać błędy,</li><li>aplikacja nie jest wyrobem medycznym,</li><li>profil nieaktywny przez co najmniej 180 dni może zostać usunięty podczas cotygodniowego sprawdzenia,</li><li>przy usunięciu konta dane powiązane z profilem są usuwane, a wybrane informacje mogą pozostać wyłącznie jako niepowiązane anonimowe agregaty statystyczne.</li></ul><button id="termsReadFull" class="legal-link" type="button">Przeczytaj pełny Regulamin</button><p class="legal-note">Informacje o przetwarzaniu danych znajdziesz w <button id="termsPrivacyOpen" class="legal-link" type="button">Polityce prywatności</button>.</p><label class="legal-check"><input id="termsAcceptCheck" type="checkbox"><span>Akceptuję Regulamin aplikacji w wersji ${TERMS_VERSION} i potwierdzam, że mam ukończone 18 lat.</span></label><p id="termsAcceptError" class="legal-error hidden"></p><div class="legal-actions"><button id="termsAcceptBtn" class="legal-primary" type="button" disabled>Akceptuję i przechodzę dalej</button></div></div>`;
     document.body.appendChild(overlay);
     const check = document.getElementById('termsAcceptCheck');
     const button = document.getElementById('termsAcceptBtn');
