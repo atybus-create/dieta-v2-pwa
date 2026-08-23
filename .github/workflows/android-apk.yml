@@ -1,8 +1,14 @@
-name: Build Android APK
+name: Build Android Release Candidate
 
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'android-app/**'
+      - '.github/workflows/android-apk.yml'
+  push:
+    branches:
+      - 'release-final-monetization-*'
     paths:
       - 'android-app/**'
       - '.github/workflows/android-apk.yml'
@@ -12,38 +18,35 @@ permissions:
   contents: read
 
 jobs:
-  build-apk:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Install Android SDK 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-
-      - name: Build debug APK
-        run: gradle -p android-app assembleDebug --no-daemon
-
-      - name: Rename APK
-        run: cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-standalone-v1.1.2.apk
-
-      - name: Upload APK
+      - name: Build debug APK and release AAB
+        run: gradle -p android-app assembleDebug bundleRelease --no-daemon
+      - name: Collect artifacts
+        run: |
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.2.0-rc1.apk
+          cp android-app/app/build/outputs/bundle/release/app-release.aab Wiem-co-Zre-m-z-AI-v1.2.0-rc1-unsigned.aab
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-standalone-v1.1.2
-          path: Wiem-co-Zre-m-z-AI-standalone-v1.1.2.apk
+          name: Wiem-co-Zre-m-z-AI-v1.2.0-rc1
+          path: |
+            Wiem-co-Zre-m-z-AI-v1.2.0-rc1.apk
+            Wiem-co-Zre-m-z-AI-v1.2.0-rc1-unsigned.aab
           if-no-files-found: error
