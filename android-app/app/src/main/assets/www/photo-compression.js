@@ -1,6 +1,8 @@
 (() => {
-  const MAX_EDGE = 1600;
-  const JPEG_QUALITY = 0.80;
+  const MAX_EDGE = 1280;
+  const TARGET_BYTES = 900 * 1024;
+  const MAX_ORIGINAL_FALLBACK_BYTES = 12 * 1024 * 1024;
+  const JPEG_QUALITIES = [0.80, 0.68, 0.56];
 
   const style = document.createElement('style');
   style.id = 'photo-loading-visual-fix';
@@ -24,9 +26,34 @@
       )
     );
 
+  const canSendOriginal = file => {
+    if (!file || Number(file.size || 0) <= 0) return false;
+    if (Number(file.size || 0) > MAX_ORIGINAL_FALLBACK_BYTES) return false;
+    const type = String(file.type || '').toLowerCase();
+    return !type || /^image\/(jpe?g|png|webp)$/.test(type);
+  };
+
+  const encodeJpeg = (canvas, quality) =>
+    new Promise((resolve, reject) => {
+      canvas.toBlob(
+        value => value ? resolve(value) : reject(new Error('Nie udało się zakodować zdjęcia jako JPEG.')),
+        'image/jpeg',
+        quality
+      );
+    });
+
   async function optimizePhoto(file) {
     if (!file || !String(file.type || '').startsWith('image/')) {
       throw new Error('Wybrany plik nie jest zdjęciem.');
+    }
+
+    const isJpeg = /^image\/jpe?g$/i.test(String(file.type || ''));
+    if (isJpeg && Number(file.size || 0) > 0 && Number(file.size || 0) <= TARGET_BYTES) {
+      console.info('Photo upload: small JPEG, compression skipped', {
+        bytes: file.size,
+        type: file.type
+      });
+      return file;
     }
 
     let objectUrl = '';
@@ -62,13 +89,17 @@
       context.fillRect(0, 0, targetWidth, targetHeight);
       context.drawImage(image, 0, 0, targetWidth, targetHeight);
 
-      const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(
-          value => value ? resolve(value) : reject(new Error('Nie udało się zakodować zdjęcia jako JPEG.')),
-          'image/jpeg',
-          JPEG_QUALITY
-        );
-      });
+      let blob = null;
+      let usedQuality = JPEG_QUALITIES[0];
+      for (const quality of JPEG_QUALITIES) {
+        usedQuality = quality;
+        blob = await encodeJpeg(canvas, quality);
+        if (blob.size <= TARGET_BYTES) break;
+      }
+
+      if (!blob) {
+        throw new Error('Nie udało się przygotować zdjęcia do wysłania.');
+      }
 
       const baseName = String(file.name || 'meal').replace(/\.[^.]+$/, '') || 'meal';
       const normalized = new File([blob], `${baseName}.jpg`, {
@@ -85,13 +116,24 @@
         sourceHeight,
         targetWidth,
         targetHeight,
-        jpegQuality: JPEG_QUALITY
+        jpegQuality: usedQuality
       });
 
       return normalized;
     } catch (error) {
-      console.error('Photo normalization failed.', error);
-      throw new Error('Nie udało się przygotować zdjęcia. Zrób zdjęcie ponownie.');
+      console.warn('Photo normalization failed, evaluating safe original fallback.', error);
+      if (canSendOriginal(file)) {
+        console.warn('Photo upload: using original image fallback', {
+          type: file.type,
+          bytes: file.size
+        });
+        return file;
+      }
+      throw new Error(
+        Number(file?.size || 0) > MAX_ORIGINAL_FALLBACK_BYTES
+          ? 'Zdjęcie jest zbyt duże. Zrób zdjęcie ponownie.'
+          : 'Nie udało się przygotować zdjęcia. Zrób zdjęcie ponownie.'
+      );
     } finally {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     }
