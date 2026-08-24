@@ -157,7 +157,7 @@ public class ReminderReceiver extends BroadcastReceiver {
             notificationManager.createNotificationChannel(channel);
         }
 
-        Intent openApp = new Intent(context, ReminderMainActivity.class)
+        Intent openApp = new Intent(context, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(
                 context,
