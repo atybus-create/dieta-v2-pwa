@@ -85,8 +85,33 @@ function sanitizeHydrationDisplay(code) {
 
 function sanitizeHistoryHydration(code) {
   const hook = `  AppHooks.on('afterApi', 'history-hydration', context => {\n    if (context.action === 'history' && context.response?.success) {\n      latestHistory = context.response;\n      setTimeout(() => renderHistoryHydration(context.response), 0);\n    }\n    return context;\n  });`;
-  code = replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
+  return replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
+}
+
+function sanitizeThemeManager(code) {
+  const themeHooks = `  AppHooks.on('beforeEnterApp', 'theme-local', () => {\n    if (state?.profile?.userId) applyTheme(localTheme(), { remember: false });\n  });\n  AppHooks.on('afterEnterApp', 'theme-sync', async () => {\n    ensureUi();\n    await syncTheme();\n  });\n  AppHooks.on('clearSession', 'theme-clear', () => forceAuthDark());\n  `;
+  code = replaceBlock(
+    code,
+    '  const baseEnterApp=enterApp;',
+    "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureUi,{once:true});else ensureUi();",
+    themeHooks,
+    'theme-manager.js/theme'
+  );
+
+  const accountHook = `AppHooks.on('afterEnterApp', 'account-ui', () => { ensureAccountUi(); }); `;
+  code = replaceBlock(
+    code,
+    'const baseEnterAppAccount=enterApp;',
+    "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureAccountUi,{once:true});else ensureAccountUi();",
+    accountHook,
+    'theme-manager.js/account'
+  );
   return code;
+}
+
+function sanitizePhotoCompression(code) {
+  const hook = `  AppHooks.on('beforeApi', 'photo-preprocessing', async context => {\n    if (context.action !== 'analyze_photo' || !context.file) return context;\n    let uploadFile = context.file;\n    if (typeof loading === 'function') {\n      loading(true, 'Analizuję zdjęcie…', 'Przygotowuję zdjęcie do wysłania.');\n    }\n    await nextPaint();\n    try {\n      uploadFile = await optimizePhoto(context.file);\n    } catch (error) {\n      console.warn('Photo preprocessing failed; checking original fallback.', error);\n      if (!canSendOriginal(context.file)) {\n        throw new Error(\n          Number(context.file?.size || 0) > MAX_ORIGINAL_FALLBACK_BYTES\n            ? 'Zdjęcie jest zbyt duże. Zrób zdjęcie ponownie.'\n            : 'Nie udało się odczytać zdjęcia. Zrób zdjęcie ponownie.'\n        );\n      }\n      uploadFile = context.file;\n    }\n    return { ...context, file: uploadFile };\n  });`;
+  return replaceBlock(code, "  if (typeof analyzePhoto !== 'function') {", '})();', hook, 'photo-compression.js') + '})();\n';
 }
 
 function sanitizePwaLoginSafety(code) {
@@ -104,6 +129,8 @@ function sanitizeModule(moduleName, code) {
   if (moduleName === 'water-tracker.js') return sanitizeWaterTracker(code);
   if (moduleName === 'hydration-display.js') return sanitizeHydrationDisplay(code);
   if (moduleName === 'history-hydration.js') return sanitizeHistoryHydration(code);
+  if (moduleName === 'theme-manager.js') return sanitizeThemeManager(code);
+  if (moduleName === 'photo-compression.js') return sanitizePhotoCompression(code);
   if (moduleName === 'pwa-login-safety.js') return sanitizePwaLoginSafety(code);
   return code;
 }
