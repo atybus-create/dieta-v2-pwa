@@ -2,7 +2,7 @@ name: Build Android APK and AAB
 
 on:
   push:
-    branches: [main, 'release/google-play-rc']
+    branches: [main, 'release/google-play-rc', 'stage3/architecture-cleanup-20260826']
     paths:
       - '*.js'
       - '*.css'
@@ -75,26 +75,26 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk
-          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab
-          sha256sum Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab > SHA256SUMS.txt
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.apk
+          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.aab
+          sha256sum Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.aab > SHA256SUMS.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-APK
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36-APK
+          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.apk
           if-no-files-found: error
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-AAB
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36-AAB
+          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36.aab
           if-no-files-found: error
 
       - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-checksums
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-stage3-api36-checksums
           path: SHA256SUMS.txt
