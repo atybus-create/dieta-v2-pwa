@@ -111,7 +111,7 @@ function sanitizeThemeManager(code) {
 
 function sanitizePhotoCompression(code) {
   const hook = `  AppHooks.on('beforeApi', 'photo-preprocessing', async context => {\n    if (context.action !== 'analyze_photo' || !context.file) return context;\n    let uploadFile = context.file;\n    if (typeof loading === 'function') {\n      loading(true, 'Analizuję zdjęcie…', 'Przygotowuję zdjęcie do wysłania.');\n    }\n    await nextPaint();\n    try {\n      uploadFile = await optimizePhoto(context.file);\n    } catch (error) {\n      console.warn('Photo preprocessing failed; checking original fallback.', error);\n      if (!canSendOriginal(context.file)) {\n        throw new Error(\n          Number(context.file?.size || 0) > MAX_ORIGINAL_FALLBACK_BYTES\n            ? 'Zdjęcie jest zbyt duże. Zrób zdjęcie ponownie.'\n            : 'Nie udało się odczytać zdjęcia. Zrób zdjęcie ponownie.'\n        );\n      }\n      uploadFile = context.file;\n    }\n    return { ...context, file: uploadFile };\n  });`;
-  return replaceBlock(code, "  if (typeof analyzePhoto !== 'function') {", '})();', hook, 'photo-compression.js') + '})();\n';
+  return replaceBlock(code, "  if (typeof analyzePhoto !== 'function') {", '})();', hook, 'photo-compression.js');
 }
 
 function sanitizePwaLoginSafety(code) {
