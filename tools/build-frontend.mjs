@@ -85,7 +85,8 @@ function sanitizeHydrationDisplay(code) {
 
 function sanitizeHistoryHydration(code) {
   const hook = `  AppHooks.on('afterApi', 'history-hydration', context => {\n    if (context.action === 'history' && context.response?.success) {\n      latestHistory = context.response;\n      setTimeout(() => renderHistoryHydration(context.response), 0);\n    }\n    return context;\n  });`;
-  return replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
+  code = replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
+  return code;
 }
 
 function sanitizePwaLoginSafety(code) {
@@ -108,6 +109,9 @@ function sanitizeModule(moduleName, code) {
 }
 
 let core = await read(CORE_MODULE);
+const tokenKeyIndex = core.indexOf('const TOKEN_KEY =');
+if (tokenKeyIndex < 0) throw new Error('Nie znaleziono początku właściwego rdzenia przy TOKEN_KEY');
+core = core.slice(tokenKeyIndex);
 core = removeSection(core, 'HTTP', 'SESSION');
 core = removeSection(core, 'SESSION', 'AUTH / USERS');
 core = removeSection(core, 'AUTH / USERS', 'NAV');
