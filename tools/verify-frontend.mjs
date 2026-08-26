@@ -10,7 +10,7 @@ const distSw = await fs.readFile(path.join(root, 'dist/sw.js'), 'utf8');
 const failures = [];
 const assert = (condition, message) => { if (!condition) failures.push(message); };
 
-assert(MODULES.length === 30, `Manifest powinien zawierać 30 modułów, ma ${MODULES.length}`);
+assert(MODULES.length === 31, `Manifest powinien zawierać 31 modułów, ma ${MODULES.length}`);
 for (const moduleName of MODULES) {
   try { await fs.access(path.join(root, moduleName)); }
   catch { failures.push(`Brak modułu źródłowego: ${moduleName}`); }
@@ -28,7 +28,6 @@ assert(distIndex.includes('id="brandFunctionalFixes"'), 'Brak statycznego brand-
 assert(distSw.includes(`wiem-co-zre-m-ai-${BUILD_ID}`), 'Service Worker ma stary cache id');
 assert(distSw.includes(`app.bundle.js?v=${BUILD_ID}`), 'Service Worker nie cacheuje finalnego bundle');
 
-// Krytyczne powierzchnie funkcjonalne muszą nadal istnieć w finalnym artefakcie.
 const requiredUi = [
   'photoInput', 'analyzeTextBtn', 'saveMealBtn', 'saveFavoriteBtn',
   'viewFavorites', 'viewHistory', 'viewProfile', 'logoutBtn',
@@ -47,7 +46,6 @@ for (const marker of requiredFeatureMarkers) {
   assert(lowerBundle.includes(marker.toLowerCase()), `Bundle nie zawiera markera funkcji: ${marker}`);
 }
 
-// Monetyzację weryfikujemy po realnych symbolach kontraktu z APK.
 const monetizationMarkers = [
   '__wczMonetizationAdResult',
   'rewardedGateModal',
@@ -58,6 +56,20 @@ const monetizationMarkers = [
 ];
 for (const marker of monetizationMarkers) {
   assert(bundle.includes(marker), `Bundle nie zawiera markera monetyzacji: ${marker}`);
+}
+
+const nativeMarkers = [
+  'AndroidApp',
+  'AndroidCamera',
+  'captureMealPhoto',
+  '__wczNativeCameraEvent',
+  '__wczNativeCameraPhoto',
+  '__WCZ_NATIVE_CAPABILITIES__',
+  'photo_click',
+  'analyze_photo_sent'
+];
+for (const marker of nativeMarkers) {
+  assert(bundle.includes(marker), `Bundle nie zawiera kontraktu Android: ${marker}`);
 }
 
 if (failures.length) {
