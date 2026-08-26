@@ -2,7 +2,7 @@ name: Build Android APK and AAB
 
 on:
   push:
-    branches: [main, 'release/google-play-rc']
+    branches: [main, 'release/google-play-rc', 'stage4/android-integration-cleanup-20260826']
     paths:
       - '*.js'
       - '*.css'
@@ -53,6 +53,17 @@ jobs:
       - name: Verify Android architecture
         run: node tools/verify-android.mjs
 
+      - name: Resolve Android version
+        shell: bash
+        run: |
+          VERSION_NAME="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" android-app/app/build.gradle | head -n 1)"
+          VERSION_CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\([0-9][0-9]*\).*/\1/p' android-app/app/build.gradle | head -n 1)"
+          test -n "$VERSION_NAME"
+          test -n "$VERSION_CODE"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "ARTIFACT_BASENAME=Wiem-co-Zre-m-z-AI-v${VERSION_NAME}-rc-unified-api36" >> "$GITHUB_ENV"
+
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -75,26 +86,26 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.apk
-          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.aab
-          sha256sum Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.aab > SHA256SUMS.txt
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk "${ARTIFACT_BASENAME}.apk"
+          cp android-app/app/build/outputs/bundle/debug/app-debug.aab "${ARTIFACT_BASENAME}.aab"
+          sha256sum "${ARTIFACT_BASENAME}.apk" "${ARTIFACT_BASENAME}.aab" > SHA256SUMS.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36-APK
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.apk
+          name: ${{ env.ARTIFACT_BASENAME }}-APK
+          path: ${{ env.ARTIFACT_BASENAME }}.apk
           if-no-files-found: error
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36-AAB
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36.aab
+          name: ${{ env.ARTIFACT_BASENAME }}-AAB
+          path: ${{ env.ARTIFACT_BASENAME }}.aab
           if-no-files-found: error
 
       - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-unified-api36-checksums
+          name: ${{ env.ARTIFACT_BASENAME }}-checksums
           path: SHA256SUMS.txt
