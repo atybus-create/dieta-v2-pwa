@@ -50,6 +50,9 @@ jobs:
           node tools/sync-android-web.mjs
           diff -qr dist android-app/app/src/main/assets/www
 
+      - name: Verify Android architecture
+        run: node tools/verify-android.mjs
+
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -72,26 +75,26 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.apk
-          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.aab
-          sha256sum Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.aab > SHA256SUMS.txt
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk
+          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab
+          sha256sum Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab > SHA256SUMS.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36-APK
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.apk
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-APK
+          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.apk
           if-no-files-found: error
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36-AAB
-          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36.aab
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-AAB
+          path: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36.aab
           if-no-files-found: error
 
       - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-arch-api36-checksums
+          name: Wiem-co-Zre-m-z-AI-v1.1.10-rc-android1-api36-checksums
           path: SHA256SUMS.txt
