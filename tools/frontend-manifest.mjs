@@ -1,13 +1,17 @@
-export const BUILD_ID = '20260826-google-play-rc-android1';
+export const BUILD_ID = '20260826-google-play-rc-stage3';
 
 export const OLD_BACKEND_BASE = 'https://n8n-pi.taild8d05f.ts.net';
 export const BACKEND_BASE = 'https://api.atybuslab.com';
 
-// Kolejność jest kontraktem zgodności z ostatnią kompletną wersją APK 1.1.10.
-// Nie zmieniać kolejności bez pełnego testu regresji.
+export const CORE_MODULE = 'app-core-v13.js';
+export const RUNTIME_MODULE = 'canonical-runtime.js';
+
+// Kolejność jest jawna i deterministyczna. Moduły oznaczone jako stare warstwy
+// (auth-login-v2, water-compat, water-performance, registration-complete)
+// nie są częścią finalnego bundle Etapu 3.
 export const MODULES = Object.freeze([
-  'app-core-v13.js',
-  'auth-login-v2.js',
+  CORE_MODULE,
+  RUNTIME_MODULE,
   'splash-visual-v2.js',
   'confirm-modal.js',
   'analysis-item-removal.js',
@@ -19,8 +23,6 @@ export const MODULES = Object.freeze([
   'account-recovery.js',
   'recovery-complete-message.js',
   'water-tracker.js',
-  'water-compat.js',
-  'water-performance.js',
   'hydration-display.js',
   'history-hydration.js',
   'theme-manager.js',
@@ -34,7 +36,6 @@ export const MODULES = Object.freeze([
   'refresh-controller.js',
   'editor-portal.js',
   'pwa-login-safety.js',
-  'registration-complete.js',
   'native-platform.js',
   'monetization-client.js'
 ]);
