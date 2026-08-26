@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -11,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -102,7 +104,7 @@ public class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setUserAgentString(
                 settings.getUserAgentString()
-                        + " DietaV2Native/" + BuildConfig.VERSION_NAME
+                        + " DietaV2Native/" + getAppVersionName()
                         + " StandaloneBundle/4 NativeBridge/1 MonetizationTest/1"
         );
 
@@ -155,6 +157,29 @@ public class MainActivity extends Activity {
         }
     }
 
+    private String getAppVersionName() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return info.versionName == null || info.versionName.trim().isEmpty()
+                    ? "unknown"
+                    : info.versionName;
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
+    private long getAppVersionCode() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                return info.getLongVersionCode();
+            }
+            return info.versionCode;
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
     private final class AppBridge {
         @JavascriptInterface
         public String getCapabilities() {
@@ -167,9 +192,9 @@ public class MainActivity extends Activity {
                 result.put("monetization", true);
                 result.put("monetizationTest", true);
                 result.put("standalone", true);
-                result.put("appVersion", BuildConfig.VERSION_NAME);
-                result.put("versionCode", BuildConfig.VERSION_CODE);
-                result.put("sdk", android.os.Build.VERSION.SDK_INT);
+                result.put("appVersion", getAppVersionName());
+                result.put("versionCode", getAppVersionCode());
+                result.put("sdk", Build.VERSION.SDK_INT);
                 return result.toString();
             } catch (Exception e) {
                 return "{\"platform\":\"android\",\"native\":true}";
