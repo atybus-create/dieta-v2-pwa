@@ -6,19 +6,19 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -44,11 +44,16 @@ import com.google.android.gms.ads.nativead.NativeAdView;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 public class MainActivity extends Activity {
     private static final String LOCAL_APP_URL = "https://appassets.androidplatform.net/assets/www/index.html";
-    private static final int FILE_CHOOSER_REQUEST = 501;
+    private static final int CAMERA_REQUEST = 703;
+    private static final int MAX_EDGE = 1280;
 
     // Oficjalne jednostki DEMO Google AdMob. Tylko build testowy.
     private static final String REWARDED_TEST_ID = "ca-app-pub-3940256099942544/5224354917";
@@ -57,9 +62,8 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private FrameLayout rootFrame;
-    private ValueCallback<Uri[]> fileCallback;
-    private Uri cameraOutputUri;
     private WebViewAssetLoader assetLoader;
+    private Uri cameraOutputUri;
 
     private RewardedAd rewardedAd;
     private InterstitialAd interstitialAd;
@@ -96,8 +100,15 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.9 StandaloneBundle/3 MonetizationTest/1");
+        settings.setUserAgentString(
+                settings.getUserAgentString()
+                        + " DietaV2Native/" + BuildConfig.VERSION_NAME
+                        + " StandaloneBundle/4 NativeBridge/1 MonetizationTest/1"
+        );
 
+        // Mosty są rejestrowane przed loadUrl. Frontend nie czeka na timeout ani wstrzykiwany listener.
+        webView.addJavascriptInterface(new AppBridge(), "AndroidApp");
+        webView.addJavascriptInterface(new CameraBridge(), "AndroidCamera");
         webView.addJavascriptInterface(new MonetizationBridge(), "AndroidMonetization");
 
         CookieManager cookieManager = CookieManager.getInstance();
@@ -111,27 +122,10 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view, android.webkit.WebResourceRequest request) {
+            public android.webkit.WebResourceResponse shouldInterceptRequest(
+                    WebView view,
+                    android.webkit.WebResourceRequest request) {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;window.__AI_MONITOR_STANDALONE_BUNDLE__=true;window.__WCZAI_MONETIZATION_TEST__=true;", null);
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                view.evaluateJavascript(
-                        "window.__AI_MONITOR_NATIVE__=true;" +
-                        "window.__AI_MONITOR_STANDALONE_BUNDLE__=true;" +
-                        "window.__WCZAI_MONETIZATION_TEST__=true;" +
-                        "document.documentElement.classList.add('native-wrapper');" +
-                        "['installFirstBtn','installHint','installBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});",
-                        null
-                );
             }
 
             @Override
@@ -154,27 +148,39 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(
-                    WebView webView,
-                    ValueCallback<Uri[]> filePathCallback,
-                    FileChooserParams fileChooserParams) {
-
-                if (fileCallback != null) {
-                    fileCallback.onReceiveValue(null);
-                }
-
-                fileCallback = filePathCallback;
-                launchCamera();
-                return true;
-            }
-        });
-
         if (savedInstanceState == null) {
             webView.loadUrl(LOCAL_APP_URL);
         } else {
             webView.restoreState(savedInstanceState);
+        }
+    }
+
+    private final class AppBridge {
+        @JavascriptInterface
+        public String getCapabilities() {
+            try {
+                JSONObject result = new JSONObject();
+                result.put("platform", "android");
+                result.put("native", true);
+                result.put("camera", true);
+                result.put("reminders", true);
+                result.put("monetization", true);
+                result.put("monetizationTest", true);
+                result.put("standalone", true);
+                result.put("appVersion", BuildConfig.VERSION_NAME);
+                result.put("versionCode", BuildConfig.VERSION_CODE);
+                result.put("sdk", android.os.Build.VERSION.SDK_INT);
+                return result.toString();
+            } catch (Exception e) {
+                return "{\"platform\":\"android\",\"native\":true}";
+            }
+        }
+    }
+
+    private final class CameraBridge {
+        @JavascriptInterface
+        public void captureMealPhoto() {
+            runOnUiThread(MainActivity.this::launchCamera);
         }
     }
 
@@ -420,11 +426,19 @@ public class MainActivity extends Activity {
     }
 
     private void launchCamera() {
+        if (cameraOutputUri != null) {
+            emitCameraEvent("camera_error", "CAMERA_BUSY", "Aparat jest już uruchomiony.", 0);
+            return;
+        }
+
+        emitCameraEvent("camera_open", null, null, 0);
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraOutputUri = createCameraOutputUri();
 
         if (cameraOutputUri == null || cameraIntent.resolveActivity(getPackageManager()) == null) {
-            finishFileChooser(null);
+            emitCameraEvent("camera_error", "CAMERA_UNAVAILABLE", "Nie udało się uruchomić aparatu.", 0);
+            deleteCameraOutputIfPresent();
+            clearCameraUri();
             return;
         }
 
@@ -441,17 +455,18 @@ public class MainActivity extends Activity {
         }
 
         try {
-            startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST);
+            startActivityForResult(cameraIntent, CAMERA_REQUEST);
         } catch (Exception e) {
+            emitCameraEvent("camera_error", "CAMERA_LAUNCH_FAILED", "Nie udało się uruchomić aparatu.", 0);
             deleteCameraOutputIfPresent();
-            finishFileChooser(null);
+            revokeAndClearCameraUri();
         }
     }
 
     private Uri createCameraOutputUri() {
         try {
             ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, "meal_" + System.currentTimeMillis() + ".jpg");
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, "meal_native_" + System.currentTimeMillis() + ".jpg");
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/WiemCoZremAI");
             return getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -460,19 +475,117 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean hasUsableContent(Uri uri) {
-        if (uri == null) return false;
-        try (AssetFileDescriptor descriptor = getContentResolver().openAssetFileDescriptor(uri, "r")) {
-            if (descriptor == null) return false;
-            long length = descriptor.getLength();
-            if (length > 0) return true;
-        } catch (Exception ignored) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != CAMERA_REQUEST) return;
+
+        emitCameraEvent("camera_result", resultCode == RESULT_OK ? "OK" : "CANCELLED", null, 0);
+
+        Uri returnedUri = data != null ? data.getData() : null;
+        Uri usableUri = resultCode == RESULT_OK && hasContent(cameraOutputUri)
+                ? cameraOutputUri
+                : (resultCode == RESULT_OK && hasContent(returnedUri) ? returnedUri : null);
+
+        if (usableUri == null) {
+            boolean cancelled = resultCode == RESULT_CANCELED;
+            emitCameraEvent(
+                    cancelled ? "camera_cancelled" : "camera_error",
+                    cancelled ? "USER_CANCELLED" : "NO_IMAGE",
+                    cancelled ? "Anulowano robienie zdjęcia." : "Aparat nie zwrócił poprawnego zdjęcia.",
+                    0
+            );
+            deleteCameraOutputIfPresent();
+            revokeAndClearCameraUri();
+            return;
         }
 
-        try (java.io.InputStream stream = getContentResolver().openInputStream(uri)) {
+        final Uri photoUri = usableUri;
+        new Thread(() -> {
+            try {
+                byte[] jpeg = normalizeCameraPhoto(photoUri);
+                if (jpeg == null || jpeg.length == 0) throw new IllegalStateException("Puste zdjęcie");
+                emitCameraEvent("photo_prepared", "OK", null, jpeg.length);
+                String base64 = Base64.encodeToString(jpeg, Base64.NO_WRAP);
+                deliverPhotoToJavascript(base64);
+            } catch (Exception e) {
+                emitCameraEvent("camera_error", "PHOTO_PREPARE_FAILED", "Nie udało się przygotować zdjęcia do analizy.", 0);
+            } finally {
+                revokeAndClearCameraUri();
+            }
+        }, "meal-camera-normalize").start();
+    }
+
+    private boolean hasContent(Uri uri) {
+        if (uri == null) return false;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
             return stream != null && stream.read() != -1;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             return false;
+        }
+    }
+
+    private byte[] normalizeCameraPhoto(Uri uri) throws Exception {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            BitmapFactory.decodeStream(stream, null, bounds);
+        }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            throw new IllegalStateException("Nieprawidłowe wymiary zdjęcia");
+        }
+
+        int sample = 1;
+        while (Math.max(bounds.outWidth / sample, bounds.outHeight / sample) > MAX_EDGE * 2) {
+            sample *= 2;
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = Math.max(1, sample);
+        Bitmap bitmap;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            bitmap = BitmapFactory.decodeStream(stream, null, options);
+        }
+        if (bitmap == null) throw new IllegalStateException("Nie udało się odczytać zdjęcia");
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        float scale = Math.min(1f, (float) MAX_EDGE / Math.max(width, height));
+        Bitmap output = bitmap;
+        if (scale < 1f) {
+            int targetWidth = Math.max(1, Math.round(width * scale));
+            int targetHeight = Math.max(1, Math.round(height * scale));
+            output = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+        }
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        boolean ok = output.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+        if (output != bitmap) output.recycle();
+        bitmap.recycle();
+        if (!ok) throw new IllegalStateException("Nie udało się zakodować zdjęcia");
+        return bytes.toByteArray();
+    }
+
+    private void deliverPhotoToJavascript(String base64) {
+        if (webView == null) return;
+        String js = "window.__wczNativeCameraPhoto&&window.__wczNativeCameraPhoto("
+                + JSONObject.quote(base64) + ","
+                + JSONObject.quote("image/jpeg") + ","
+                + JSONObject.quote("meal.jpg") + ");";
+        webView.post(() -> webView.evaluateJavascript(js, null));
+    }
+
+    private void emitCameraEvent(String stage, String code, String message, int bytes) {
+        if (webView == null) return;
+        try {
+            JSONObject event = new JSONObject();
+            event.put("stage", stage);
+            if (code != null) event.put("code", code);
+            if (message != null) event.put("message", message);
+            if (bytes > 0) event.put("bytes", bytes);
+            String js = "window.__wczNativeCameraEvent&&window.__wczNativeCameraEvent(" + event.toString() + ");";
+            webView.post(() -> webView.evaluateJavascript(js, null));
+        } catch (Exception ignored) {
         }
     }
 
@@ -484,46 +597,19 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void finishFileChooser(Uri[] result) {
-        if (fileCallback != null) {
-            fileCallback.onReceiveValue(result);
-            fileCallback = null;
-        }
+    private void clearCameraUri() {
         cameraOutputUri = null;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode != FILE_CHOOSER_REQUEST || fileCallback == null) {
-            return;
-        }
-
-        final int grantFlags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
-        Uri returnedUri = data != null ? data.getData() : null;
-        Uri usableUri = null;
-
-        if (resultCode == RESULT_OK) {
-            if (hasUsableContent(cameraOutputUri)) {
-                usableUri = cameraOutputUri;
-            } else if (hasUsableContent(returnedUri)) {
-                usableUri = returnedUri;
-            }
-        }
-
-        if (usableUri == null) {
-            deleteCameraOutputIfPresent();
-        }
-
+    private void revokeAndClearCameraUri() {
         if (cameraOutputUri != null) {
+            int flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
             try {
-                revokeUriPermission(cameraOutputUri, grantFlags);
+                revokeUriPermission(cameraOutputUri, flags);
             } catch (Exception ignored) {
             }
         }
-
-        finishFileChooser(usableUri == null ? null : new Uri[]{usableUri});
+        cameraOutputUri = null;
     }
 
     @Override
@@ -535,6 +621,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         removeNativeAd();
+        if (cameraOutputUri != null) {
+            deleteCameraOutputIfPresent();
+            revokeAndClearCameraUri();
+        }
         if (webView != null) webView.destroy();
         super.onDestroy();
     }
