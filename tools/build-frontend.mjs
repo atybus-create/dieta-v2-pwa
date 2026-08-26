@@ -42,8 +42,11 @@ function replaceBlock(source, startText, endText, replacement, moduleName) {
 
 function centralizeEndpointLiterals(code) {
   const escaped = OLD_BACKEND_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const endpointLiteral = new RegExp(`(['"])${escaped}/webhook/([^'"\\s]+)\\1`, 'g');
-  return code.replace(endpointLiteral, (_match, _quote, route) => `APP_CONFIG.endpoint('${route}')`);
+  const backendLiteral = new RegExp(`(['"])${escaped}([^'"\\n\\r]*)\\1`, 'g');
+  return code.replace(backendLiteral, (_match, _quote, suffix) => {
+    if (!suffix) return 'APP_CONFIG.backendBase';
+    return `APP_CONFIG.backendBase + '${String(suffix).replace(/'/g, "\\'")}'`;
+  });
 }
 
 function sanitizeAccountRecovery(code) {
@@ -82,8 +85,7 @@ function sanitizeHydrationDisplay(code) {
 
 function sanitizeHistoryHydration(code) {
   const hook = `  AppHooks.on('afterApi', 'history-hydration', context => {\n    if (context.action === 'history' && context.response?.success) {\n      latestHistory = context.response;\n      setTimeout(() => renderHistoryHydration(context.response), 0);\n    }\n    return context;\n  });`;
-  code = replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
-  return code;
+  return replaceBlock(code, '  const baseApiForHistoryHydration = api;', '  injectStyles();', hook, 'history-hydration.js');
 }
 
 function sanitizePwaLoginSafety(code) {
@@ -135,7 +137,6 @@ for (const moduleName of extensionNames) {
 
 const config = `window.__WCZ_APP_CONFIG__ = Object.freeze({\n  buildId: '${BUILD_ID}',\n  versionName: '${versionName}',\n  versionCode: ${Number(versionCode)},\n  backendBase: '${BACKEND_BASE}',\n  endpoint(route) { return this.backendBase + '/webhook/' + String(route || '').replace(/^\\/+/, ''); }\n});`;
 
-// Init uruchamiamy dopiero po zarejestrowaniu wszystkich hooków i rozszerzeń.
 const startOnce = `\nif (document.readyState === 'loading') {\n  document.addEventListener('DOMContentLoaded', init, { once: true });\n} else {\n  init();\n}\n`;
 
 const bundle = `${startupBranding}\n\n/* GENERATED FILE - ${BUILD_ID}\n * Source of truth: root modules + tools/frontend-manifest.mjs + Android version metadata.\n * Runtime fetch/eval and layered global overrides intentionally removed.\n */\n\n${config}\n\n${core}\n\n${runtime}\n${extensions.join('\n')}\n${startOnce}`;
