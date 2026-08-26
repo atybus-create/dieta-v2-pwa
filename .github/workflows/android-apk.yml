@@ -2,7 +2,7 @@ name: Build Android APK and AAB
 
 on:
   push:
-    branches: [main, 'release/google-play-rc', 'stage4/android-integration-cleanup-20260826']
+    branches: [main, 'release/google-play-rc']
     paths:
       - '*.js'
       - '*.css'
