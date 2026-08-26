@@ -1,4 +1,4 @@
-export const BUILD_ID = '20260826-google-play-rc-arch1';
+export const BUILD_ID = '20260826-google-play-rc-android1';
 
 export const OLD_BACKEND_BASE = 'https://n8n-pi.taild8d05f.ts.net';
 export const BACKEND_BASE = 'https://api.atybuslab.com';
@@ -35,5 +35,6 @@ export const MODULES = Object.freeze([
   'editor-portal.js',
   'pwa-login-safety.js',
   'registration-complete.js',
+  'native-platform.js',
   'monetization-client.js'
 ]);
