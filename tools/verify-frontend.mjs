@@ -39,12 +39,25 @@ for (const marker of requiredUi) {
 }
 
 const requiredFeatureMarkers = [
-  '__WCZAI_MONETIZATION', 'resetToken', 'water', 'consent', 'favorite',
+  'resetToken', 'water', 'consent', 'favorite',
   'analysis', 'meal', 'theme', 'history', 'profile'
 ];
 const lowerBundle = bundle.toLowerCase();
 for (const marker of requiredFeatureMarkers) {
   assert(lowerBundle.includes(marker.toLowerCase()), `Bundle nie zawiera markera funkcji: ${marker}`);
+}
+
+// Monetyzację weryfikujemy po realnych symbolach kontraktu z APK.
+const monetizationMarkers = [
+  '__wczMonetizationAdResult',
+  'rewardedGateModal',
+  'subscriptionPlansModal',
+  'AndroidMonetization',
+  'ensureAiAccess',
+  'handleAfterAction'
+];
+for (const marker of monetizationMarkers) {
+  assert(bundle.includes(marker), `Bundle nie zawiera markera monetyzacji: ${marker}`);
 }
 
 if (failures.length) {
