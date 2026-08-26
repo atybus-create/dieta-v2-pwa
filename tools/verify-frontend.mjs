@@ -53,9 +53,12 @@ const forbiddenLayerPatterns = [
   [/\bcreateUser\s*=\s*async\s+function/g, 'runtime override createUser()'],
   [/\benterApp\s*=\s*async\s+function/g, 'runtime override enterApp()'],
   [/\bclearSession\s*=\s*function/g, 'runtime override clearSession()'],
-  [/\bbaseApi\b/g, 'łańcuch baseApi'],
-  [/\bbaseEnterApp\b/g, 'łańcuch baseEnterApp'],
-  [/\bbaseCreateUser\b/g, 'łańcuch baseCreateUser'],
+  [/\banalyzePhoto\s*=\s*async\s+function/g, 'runtime override analyzePhoto()'],
+  [/\bbaseApi\w*\b/g, 'łańcuch baseApi*'],
+  [/\bbaseEnterApp\w*\b/g, 'łańcuch baseEnterApp*'],
+  [/\bbaseCreateUser\w*\b/g, 'łańcuch baseCreateUser*'],
+  [/\bbaseAnalyzePhoto\w*\b/g, 'łańcuch baseAnalyzePhoto*'],
+  [/\bbaseLoad(?:Dashboard|Settings|History)\w*\b/g, 'łańcuch baseLoad*'],
   [/\boriginalPost\s*=\s*post\b/g, 'tymczasowe podmienianie post()']
 ];
 for (const [pattern, label] of forbiddenLayerPatterns) {
@@ -65,7 +68,11 @@ for (const [pattern, label] of forbiddenLayerPatterns) {
 assert(bundle.includes('const AppHooks = (() =>'), 'Brak jawnego rejestru AppHooks');
 assert(bundle.includes("AppHooks.on('beforeApi', 'legal-ai-consent'"), 'Zgody AI nie są podpięte przez hook');
 assert(bundle.includes("AppHooks.on('beforeApi', 'monetization-access'"), 'Monetyzacja nie jest podpięta przez hook');
+assert(bundle.includes("AppHooks.on('beforeApi', 'photo-preprocessing'"), 'Kompresja zdjęcia nie jest podpięta przez hook');
 assert(bundle.includes("AppHooks.on('beforeEnterApp', 'recovery-required-email'"), 'Recovery nie jest podpięte przez hook');
+assert(bundle.includes("AppHooks.on('beforeEnterApp', 'theme-local'"), 'Motyw nie jest podpięty przez hook');
+assert(bundle.includes("AppHooks.on('afterEnterApp', 'theme-sync'"), 'Synchronizacja motywu nie jest podpięta przez hook');
+assert(bundle.includes("AppHooks.on('afterEnterApp', 'account-ui'"), 'UI konta nie jest podpięte przez hook');
 assert(bundle.includes("AppHooks.on('afterApi', 'water-response-ui'"), 'Woda nie jest podpięta przez hook');
 assert(bundle.includes("AppHooks.on('afterApi', 'hydration-breakdown'"), 'Nawodnienie nie jest podpięte przez hook');
 assert(bundle.includes("AppHooks.on('afterApi', 'history-hydration'"), 'Historia nawodnienia nie jest podpięta przez hook');
