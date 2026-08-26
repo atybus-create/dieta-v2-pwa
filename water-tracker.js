@@ -2,6 +2,7 @@
   'use strict';
 
   const STYLE_ID = 'waterTrackerStyles';
+  let waterActionBusy = false;
 
   function el(id) {
     return document.getElementById(id);
@@ -133,6 +134,20 @@
     el('waterUndoBtn').onclick = undoWater;
   }
 
+  function setWaterActionBusy(busy) {
+    waterActionBusy = Boolean(busy);
+    const card = el('waterCard');
+    const consumed = Math.max(0, Number(String(el('waterConsumed')?.textContent || '0').replace(/[^0-9.-]/g, '')) || 0);
+    const mealFluids = Math.max(0, Number(card?.dataset?.mealFluidsMl || 0) || 0);
+    const plainFromDataset = Number(card?.dataset?.plainWaterMl);
+    const plainWater = Number.isFinite(plainFromDataset)
+      ? Math.max(0, plainFromDataset)
+      : Math.max(0, consumed - mealFluids);
+
+    if (el('waterAddBtn')) el('waterAddBtn').disabled = waterActionBusy;
+    if (el('waterUndoBtn')) el('waterUndoBtn').disabled = waterActionBusy || plainWater < 250;
+  }
+
   function renderWater(data) {
     ensureWaterCard();
     const water = data?.water || {};
@@ -141,20 +156,26 @@
     const remaining = Math.max(0, Math.round(Number(water.remainingMl ?? (target - consumed))));
     const percent = target > 0 ? Math.max(0, Math.round((consumed / target) * 100)) : 0;
     const visualPercent = Math.min(100, percent);
+    const plainWater = Math.max(0, Math.round(Number(water.plainWaterMl ?? consumed)));
+    const mealFluids = Math.max(0, Math.round(Number(water.mealFluidsMl || 0)));
+    const card = el('waterCard');
+
+    if (card) {
+      card.dataset.plainWaterMl = String(plainWater);
+      card.dataset.mealFluidsMl = String(mealFluids);
+    }
 
     if (el('waterConsumed')) el('waterConsumed').textContent = `${consumed} ml`;
     if (el('waterTarget')) el('waterTarget').textContent = `cel ${target} ml`;
     if (el('waterPercent')) el('waterPercent').textContent = `${percent}% celu`;
     if (el('waterRemaining')) el('waterRemaining').textContent = `pozostało ${remaining} ml`;
     if (el('waterBar')) el('waterBar').style.width = `${visualPercent}%`;
-    if (el('waterUndoBtn')) el('waterUndoBtn').disabled = consumed < 250;
+    setWaterActionBusy(waterActionBusy);
   }
 
   async function addWater() {
-    const add = el('waterAddBtn');
-    const undo = el('waterUndoBtn');
-    if (add) add.disabled = true;
-    if (undo) undo.disabled = true;
+    if (waterActionBusy) return;
+    setWaterActionBusy(true);
     try {
       await api('water_add');
       const card = el('waterCard');
@@ -166,15 +187,13 @@
     } catch (error) {
       if (typeof toast === 'function') toast(error?.message || 'Nie udało się dodać wody.');
     } finally {
-      if (add) add.disabled = false;
+      setWaterActionBusy(false);
     }
   }
 
   async function undoWater() {
-    const add = el('waterAddBtn');
-    const undo = el('waterUndoBtn');
-    if (add) add.disabled = true;
-    if (undo) undo.disabled = true;
+    if (waterActionBusy) return;
+    setWaterActionBusy(true);
     try {
       const response = await api('water_remove');
       if (typeof toast === 'function') {
@@ -183,6 +202,8 @@
       await loadDashboard();
     } catch (error) {
       if (typeof toast === 'function') toast(error?.message || 'Nie udało się cofnąć wody.');
+    } finally {
+      setWaterActionBusy(false);
     }
   }
 

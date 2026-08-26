@@ -77,6 +77,16 @@ assert(bundle.includes("AppHooks.on('afterApi', 'water-response-ui'"), 'Woda nie
 assert(bundle.includes("AppHooks.on('afterApi', 'hydration-breakdown'"), 'Nawodnienie nie jest podpięte przez hook');
 assert(bundle.includes("AppHooks.on('afterApi', 'history-hydration'"), 'Historia nawodnienia nie jest podpięta przez hook');
 
+// Etap 5: regresje wykryte w testach APK 1.1.10.
+assert(bundle.includes('let waterActionBusy = false'), 'Brak jednego źródła stanu zajętości nawodnienia');
+assert(bundle.includes('function setWaterActionBusy(busy)'), 'Kontrolki nawodnienia nie mają wspólnej funkcji odblokowującej');
+assert(count(/setWaterActionBusy\(false\)/g) >= 2, 'Dodawanie i cofanie wody muszą zawsze odblokować kontrolki');
+assert(bundle.includes('width:max(68vw,37.778dvh)'), 'Animowany pasek startowy nie zakrywa statycznego paska na różnych proporcjach ekranu');
+assert(bundle.includes('height:clamp(22px,max(4.6dvh,8.28vw),38px)'), 'Pasek startowy nie ma powiększonej wysokości');
+assert(bundle.includes('window.visualViewport'), 'Modal usuwania profilu nie reaguje na klawiaturę ekranową');
+assert(bundle.includes('profile-delete-actions{position:sticky'), 'Przyciski modalu usuwania profilu nie pozostają dostępne nad klawiaturą');
+assert(bundle.includes('profile-delete-card{width:min(100%,460px);max-height:'), 'Modal usuwania profilu nie ma przewijalnej wysokości dla małych ekranów');
+
 const versionName = gradle.match(/versionName\s+['"]([^'"]+)['"]/)?.[1];
 const versionCode = gradle.match(/versionCode\s+(\d+)/)?.[1];
 assert(Boolean(versionName && versionCode), 'Nie można odczytać wersji Android z build.gradle');
