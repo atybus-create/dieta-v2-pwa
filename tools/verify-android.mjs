@@ -17,8 +17,9 @@ const requiredMain = [
   'new MonetizationBridge(), "AndroidMonetization"',
   'captureMealPhoto()',
   'getCapabilities()',
-  'BuildConfig.VERSION_NAME',
-  'BuildConfig.VERSION_CODE',
+  'getAppVersionName()',
+  'getAppVersionCode()',
+  'PackageInfo',
   '__wczNativeCameraEvent',
   '__wczNativeCameraPhoto',
   'showRewardedInternal',
@@ -34,11 +35,13 @@ const forbiddenMain = [
   'onShowFileChooser',
   'FILE_CHOOSER_REQUEST',
   'DietaV2Native/1.1.9',
+  'BuildConfig.VERSION_NAME',
+  'BuildConfig.VERSION_CODE',
   'installNativeCameraJavascript',
   'postDelayed(this::installNativeCameraJavascript'
 ];
 for (const marker of forbiddenMain) {
-  assert(!main.includes(marker), `MainActivity nadal zawiera stary mechanizm: ${marker}`);
+  assert(!main.includes(marker), `MainActivity nadal zawiera stary lub niestabilny mechanizm: ${marker}`);
 }
 
 assert(reminder.includes('ReminderReceiver.scheduleAll(this)'), 'ReminderAwareActivity utracił harmonogram przypomnień');
@@ -60,4 +63,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Android architecture verification OK: explicit bridge, one camera flow, reminders and monetization preserved.');
+console.log('Android architecture verification OK: explicit bridge, one camera flow, package metadata versioning, reminders and monetization preserved.');
