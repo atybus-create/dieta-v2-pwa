@@ -91,7 +91,8 @@ assert(!/Wiem-co-Zre-m-z-AI-v\d+\.\d+\.\d+-rc-unified-api36/.test(workflow),
   'Workflow nadal zawiera ręcznie wpisaną wersję w nazwie artefaktu');
 
 assert(nativePlatform.includes("const hasAppBridge = Boolean(window.AndroidApp"), 'Frontend nie wykrywa jawnie AndroidApp');
-assert(nativePlatform.includes("typeof camera.captureMealPhoto === 'function'"), 'Frontend nie korzysta z jawnego kontraktu AndroidCamera');
+assert(nativePlatform.includes("typeof camera.captureMealPhoto !== 'function'"), 'Frontend nie sprawdza jawnego kontraktu AndroidCamera');
+assert(nativePlatform.includes('camera.captureMealPhoto();'), 'Frontend nie wywołuje jawnego AndroidCamera.captureMealPhoto()');
 assert(nativePlatform.includes("tile.dataset.nativeCameraBound === '1'"), 'Frontend nie chroni przed podwójnym podpięciem aparatu');
 assert(nativePlatform.includes("if (!hasAppBridge)"), 'PWA nie ma jawnej ścieżki bez Android bridge');
 assert(!nativePlatform.includes('setTimeout(bindNativeCamera'), 'Native camera nie powinna być dołączana przez opóźnioną łatkę');
