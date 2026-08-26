@@ -32,6 +32,7 @@ export const MODULES = Object.freeze([
   'today-meal-editor.js',
   'overlay-history.js',
   'refresh-controller.js',
+  'editor-portal.js',
   'pwa-login-safety.js',
   'registration-complete.js',
   'monetization-client.js'
