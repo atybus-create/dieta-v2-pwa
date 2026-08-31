@@ -14,6 +14,7 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.android.billingclient.api.SubscriptionProductReplacementParams;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,13 +26,16 @@ import java.util.List;
 import java.util.Map;
 
 public final class BillingBridge implements PurchasesUpdatedListener {
-    private static final String[] PRODUCT_IDS = new String[]{"plus", "vip"};
+    private static final String PRODUCT_PLUS = "plus";
+    private static final String PRODUCT_VIP = "vip";
+    private static final String[] PRODUCT_IDS = new String[]{PRODUCT_PLUS, PRODUCT_VIP};
     private static final String BASE_PLAN_ID = "monthly";
 
     private final Activity activity;
     private final WebView webView;
     private final BillingClient billingClient;
     private final Map<String, ProductDetails> productDetails = new HashMap<>();
+    private final List<Purchase> cachedPurchases = new ArrayList<>();
     private boolean connecting = false;
 
     public BillingBridge(Activity activity, WebView webView) {
@@ -56,9 +60,9 @@ public final class BillingBridge implements PurchasesUpdatedListener {
             public void onBillingSetupFinished(BillingResult billingResult) {
                 connecting = false;
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    queryProductsInternal();
-                    queryPurchasesInternal();
+                    emitState(true);
                 } else {
+                    emitState(false);
                     emitError("SETUP_FAILED", billingResult.getDebugMessage());
                 }
             }
@@ -94,15 +98,17 @@ public final class BillingBridge implements PurchasesUpdatedListener {
 
     @JavascriptInterface
     public void restorePurchases() {
-        activity.runOnUiThread(this::queryPurchasesInternal);
+        activity.runOnUiThread(() -> {
+            if (!billingClient.isReady()) {
+                connect();
+                emitError("BILLING_NOT_READY", "Google Play Billing nie jest jeszcze gotowy.");
+                return;
+            }
+            queryPurchasesInternal(true);
+        });
     }
 
     private void queryProductsInternal() {
-        if (!billingClient.isReady()) {
-            connect();
-            return;
-        }
-
         List<QueryProductDetailsParams.Product> products = new ArrayList<>();
         for (String productId : PRODUCT_IDS) {
             products.add(QueryProductDetailsParams.Product.newBuilder()
@@ -120,30 +126,32 @@ public final class BillingBridge implements PurchasesUpdatedListener {
                 emitError("PRODUCT_QUERY_FAILED", billingResult.getDebugMessage());
                 return;
             }
+
             productDetails.clear();
             JSONArray out = new JSONArray();
             for (ProductDetails details : result.getProductDetailsList()) {
+                ProductDetails.SubscriptionOfferDetails offer = findMonthlyOffer(details);
+                if (offer == null || offer.getPricingPhases().getPricingPhaseList().isEmpty()) continue;
+
                 productDetails.put(details.getProductId(), details);
                 try {
+                    ProductDetails.PricingPhase phase = offer.getPricingPhases().getPricingPhaseList().get(0);
                     JSONObject p = new JSONObject();
                     p.put("productId", details.getProductId());
                     p.put("name", details.getName());
                     p.put("description", details.getDescription());
-                    ProductDetails.SubscriptionOfferDetails offer = findMonthlyOffer(details);
-                    if (offer != null && !offer.getPricingPhases().getPricingPhaseList().isEmpty()) {
-                        ProductDetails.PricingPhase phase = offer.getPricingPhases().getPricingPhaseList().get(0);
-                        p.put("basePlanId", offer.getBasePlanId());
-                        p.put("formattedPrice", phase.getFormattedPrice());
-                        p.put("priceAmountMicros", phase.getPriceAmountMicros());
-                        p.put("priceCurrencyCode", phase.getPriceCurrencyCode());
-                        p.put("billingPeriod", phase.getBillingPeriod());
-                    }
+                    p.put("basePlanId", offer.getBasePlanId());
+                    p.put("formattedPrice", phase.getFormattedPrice());
+                    p.put("priceAmountMicros", phase.getPriceAmountMicros());
+                    p.put("priceCurrencyCode", phase.getPriceCurrencyCode());
+                    p.put("billingPeriod", phase.getBillingPeriod());
                     out.put(p);
                 } catch (Exception ignored) {
                 }
             }
+
             emitProducts(out);
-            emitState(true);
+            queryPurchasesInternal(false);
         });
     }
 
@@ -153,13 +161,13 @@ public final class BillingBridge implements PurchasesUpdatedListener {
         for (ProductDetails.SubscriptionOfferDetails offer : offers) {
             if (BASE_PLAN_ID.equals(offer.getBasePlanId())) return offer;
         }
-        return offers.get(0);
+        return null;
     }
 
     private void launchPurchase(String rawProductId) {
-        String productId = rawProductId == null ? "" : rawProductId.trim().toLowerCase();
-        if (!"plus".equals(productId) && !"vip".equals(productId)) {
-            emitError("UNKNOWN_PRODUCT", productId);
+        String productId = normalizeProductId(rawProductId);
+        if (productId.isEmpty()) {
+            emitError("UNKNOWN_PRODUCT", rawProductId == null ? "" : rawProductId);
             return;
         }
         if (!billingClient.isReady()) {
@@ -167,29 +175,84 @@ public final class BillingBridge implements PurchasesUpdatedListener {
             emitError("BILLING_NOT_READY", "Google Play Billing nie jest jeszcze gotowy.");
             return;
         }
+
         ProductDetails details = productDetails.get(productId);
         if (details == null) {
             queryProductsInternal();
-            emitError("PRODUCT_NOT_READY", "Odświeżono dane produktu. Spróbuj ponownie za chwilę.");
-            return;
-        }
-        ProductDetails.SubscriptionOfferDetails offer = findMonthlyOffer(details);
-        if (offer == null) {
-            emitError("NO_MONTHLY_OFFER", productId);
+            emitError("PRODUCT_NOT_READY", "Dane planu są odświeżane. Spróbuj ponownie za chwilę.");
             return;
         }
 
-        BillingFlowParams.ProductDetailsParams productParams = BillingFlowParams.ProductDetailsParams.newBuilder()
-                .setProductDetails(details)
-                .setOfferToken(offer.getOfferToken())
+        ProductDetails.SubscriptionOfferDetails offer = findMonthlyOffer(details);
+        if (offer == null) {
+            emitError("NO_MONTHLY_OFFER", "Brak aktywnego abonamentu monthly dla " + productId + ".");
+            return;
+        }
+
+        Purchase current = findCurrentPurchasedSubscription();
+        String currentProductId = current == null ? "" : findKnownProductId(current);
+        if (productId.equals(currentProductId)) {
+            emitError("ALREADY_SUBSCRIBED", "Ten plan jest już aktywny w Google Play.");
+            return;
+        }
+
+        BillingFlowParams.ProductDetailsParams.Builder productParamsBuilder =
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(details)
+                        .setOfferToken(offer.getOfferToken());
+
+        BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder();
+
+        if (current != null && !currentProductId.isEmpty()) {
+            int replacementMode = PRODUCT_VIP.equals(productId)
+                    ? SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
+                    : SubscriptionProductReplacementParams.ReplacementMode.DEFERRED;
+
+            productParamsBuilder.setSubscriptionProductReplacementParams(
+                    SubscriptionProductReplacementParams.newBuilder()
+                            .setOldProductId(currentProductId)
+                            .setReplacementMode(replacementMode)
+                            .build()
+            );
+
+            flowBuilder.setSubscriptionUpdateParams(
+                    BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+                            .setOldPurchaseToken(current.getPurchaseToken())
+                            .build()
+            );
+        }
+
+        BillingFlowParams flowParams = flowBuilder
+                .setProductDetailsParamsList(Collections.singletonList(productParamsBuilder.build()))
                 .build();
-        BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(Collections.singletonList(productParams))
-                .build();
+
         BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
         if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
             emitError("PURCHASE_FLOW_FAILED", result.getDebugMessage());
         }
+    }
+
+    private String normalizeProductId(String rawProductId) {
+        String productId = rawProductId == null ? "" : rawProductId.trim().toLowerCase();
+        if (PRODUCT_PLUS.equals(productId) || PRODUCT_VIP.equals(productId)) return productId;
+        return "";
+    }
+
+    private String findKnownProductId(Purchase purchase) {
+        if (purchase == null) return "";
+        for (String product : purchase.getProducts()) {
+            String normalized = normalizeProductId(product);
+            if (!normalized.isEmpty()) return normalized;
+        }
+        return "";
+    }
+
+    private Purchase findCurrentPurchasedSubscription() {
+        for (Purchase purchase : cachedPurchases) {
+            if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
+            if (!findKnownProductId(purchase).isEmpty()) return purchase;
+        }
+        return null;
     }
 
     @Override
@@ -202,10 +265,11 @@ public final class BillingBridge implements PurchasesUpdatedListener {
             emitError("PURCHASE_UPDATE_FAILED", billingResult.getDebugMessage());
             return;
         }
+        cachePurchases(purchases);
         emitPurchases(purchases, false);
     }
 
-    private void queryPurchasesInternal() {
+    private void queryPurchasesInternal(boolean restore) {
         if (!billingClient.isReady()) {
             connect();
             return;
@@ -215,11 +279,17 @@ public final class BillingBridge implements PurchasesUpdatedListener {
                 .build();
         billingClient.queryPurchasesAsync(params, (billingResult, purchases) -> {
             if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                emitPurchases(purchases, true);
+                cachePurchases(purchases);
+                if (restore) emitPurchases(purchases, true);
             } else {
-                emitError("RESTORE_FAILED", billingResult.getDebugMessage());
+                emitError(restore ? "RESTORE_FAILED" : "PURCHASE_QUERY_FAILED", billingResult.getDebugMessage());
             }
         });
+    }
+
+    private void cachePurchases(List<Purchase> purchases) {
+        cachedPurchases.clear();
+        if (purchases != null) cachedPurchases.addAll(purchases);
     }
 
     private void emitPurchases(List<Purchase> purchases, boolean restore) {
@@ -233,6 +303,8 @@ public final class BillingBridge implements PurchasesUpdatedListener {
                     item.put("products", products);
                     item.put("purchaseToken", purchase.getPurchaseToken());
                     item.put("purchaseState", purchase.getPurchaseState());
+                    item.put("purchased", purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED);
+                    item.put("pending", purchase.getPurchaseState() == Purchase.PurchaseState.PENDING);
                     item.put("acknowledged", purchase.isAcknowledged());
                     item.put("autoRenewing", purchase.isAutoRenewing());
                     item.put("orderId", purchase.getOrderId() == null ? JSONObject.NULL : purchase.getOrderId());
@@ -275,5 +347,7 @@ public final class BillingBridge implements PurchasesUpdatedListener {
 
     public void destroy() {
         if (billingClient.isReady()) billingClient.endConnection();
+        cachedPurchases.clear();
+        productDetails.clear();
     }
 }
