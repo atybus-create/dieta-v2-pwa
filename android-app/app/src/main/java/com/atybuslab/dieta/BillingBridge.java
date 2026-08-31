@@ -14,7 +14,6 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
-import com.android.billingclient.api.SubscriptionProductReplacementParams;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -196,37 +195,29 @@ public final class BillingBridge implements PurchasesUpdatedListener {
             return;
         }
 
-        BillingFlowParams.ProductDetailsParams.Builder productParamsBuilder =
+        BillingFlowParams.ProductDetailsParams productParams =
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                         .setProductDetails(details)
-                        .setOfferToken(offer.getOfferToken());
+                        .setOfferToken(offer.getOfferToken())
+                        .build();
 
-        BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder();
+        BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(Collections.singletonList(productParams));
 
         if (current != null && !currentProductId.isEmpty()) {
             int replacementMode = PRODUCT_VIP.equals(productId)
-                    ? SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
-                    : SubscriptionProductReplacementParams.ReplacementMode.DEFERRED;
-
-            productParamsBuilder.setSubscriptionProductReplacementParams(
-                    SubscriptionProductReplacementParams.newBuilder()
-                            .setOldProductId(currentProductId)
-                            .setReplacementMode(replacementMode)
-                            .build()
-            );
+                    ? BillingFlowParams.ReplacementMode.CHARGE_PRORATED_PRICE
+                    : BillingFlowParams.ReplacementMode.DEFERRED;
 
             flowBuilder.setSubscriptionUpdateParams(
                     BillingFlowParams.SubscriptionUpdateParams.newBuilder()
                             .setOldPurchaseToken(current.getPurchaseToken())
+                            .setSubscriptionReplacementMode(replacementMode)
                             .build()
             );
         }
 
-        BillingFlowParams flowParams = flowBuilder
-                .setProductDetailsParamsList(Collections.singletonList(productParamsBuilder.build()))
-                .build();
-
-        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
+        BillingResult result = billingClient.launchBillingFlow(activity, flowBuilder.build());
         if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
             emitError("PURCHASE_FLOW_FAILED", result.getDebugMessage());
         }
