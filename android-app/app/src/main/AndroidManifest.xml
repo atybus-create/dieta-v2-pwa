@@ -23,10 +23,11 @@
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:usesCleartextTraffic="false">
 
-        <!-- Oficjalny testowy App ID Google AdMob. Do zmiany przed publikacją. -->
+        <!-- App ID jest wybierany per buildType w app/build.gradle:
+             debug = oficjalny testowy Google, release = produkcyjny AdMob. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${adMobAppId}" />
 
         <activity
             android:name=".ReminderAwareActivity"
