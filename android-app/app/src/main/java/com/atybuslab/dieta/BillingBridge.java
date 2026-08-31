@@ -14,12 +14,12 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
-import com.google.common.collect.ImmutableList;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,7 +184,7 @@ public final class BillingBridge implements PurchasesUpdatedListener {
                 .setOfferToken(offer.getOfferToken())
                 .build();
         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(ImmutableList.of(productParams))
+                .setProductDetailsParamsList(Collections.singletonList(productParams))
                 .build();
         BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
         if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
