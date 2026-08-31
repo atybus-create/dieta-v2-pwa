@@ -10,8 +10,8 @@ android {
         applicationId 'com.atybuslab.dieta'
         minSdk 29
         targetSdk 36
-        versionCode 15
-        versionName '1.1.12'
+        versionCode 16
+        versionName '1.1.13'
     }
 
     buildFeatures {
@@ -23,18 +23,18 @@ android {
             // Debug korzysta wyłącznie z oficjalnych testowych identyfikatorów Google.
             // Dzięki temu lokalne testy nie generują sztucznego ruchu na koncie AdMob.
             manifestPlaceholders = [adMobAppId: 'ca-app-pub-3940256099942544~3347511713']
-            buildConfigField 'String', 'ADMOB_REWARDED_ID', '"ca-app-pub-3940256099942544/5224354917"'
-            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '"ca-app-pub-3940256099942544/1033173712"'
-            buildConfigField 'String', 'ADMOB_NATIVE_ID', '"ca-app-pub-3940256099942544/2247696110"'
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-3940256099942544/5224354917\"'
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-3940256099942544/1033173712\"'
+            buildConfigField 'String', 'ADMOB_NATIVE_ID', '\"ca-app-pub-3940256099942544/2247696110\"'
             buildConfigField 'boolean', 'MONETIZATION_TEST_MODE', 'true'
         }
 
         release {
             // Produkcyjne identyfikatory AdMob dla aplikacji Wiem co Żre-m z AI.
             manifestPlaceholders = [adMobAppId: 'ca-app-pub-1844071625771837~9023628216']
-            buildConfigField 'String', 'ADMOB_REWARDED_ID', '"ca-app-pub-1844071625771837/4892706319"'
-            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '"ca-app-pub-1844071625771837/9155490158"'
-            buildConfigField 'String', 'ADMOB_NATIVE_ID', '"ca-app-pub-1844071625771837/6257864076"'
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-1844071625771837/4892706319\"'
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-1844071625771837/9155490158\"'
+            buildConfigField 'String', 'ADMOB_NATIVE_ID', '\"ca-app-pub-1844071625771837/6257864076\"'
             buildConfigField 'boolean', 'MONETIZATION_TEST_MODE', 'false'
 
             minifyEnabled false
