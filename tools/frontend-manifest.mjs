@@ -1,4 +1,4 @@
-export const BUILD_ID = '20260826-google-play-rc-stage5-fixes';
+export const BUILD_ID = '20260831-google-play-rc-admob-ump';
 
 export const OLD_BACKEND_BASE = 'https://n8n-pi.taild8d05f.ts.net';
 export const BACKEND_BASE = 'https://api.atybuslab.com';
@@ -37,5 +37,6 @@ export const MODULES = Object.freeze([
   'editor-portal.js',
   'pwa-login-safety.js',
   'native-platform.js',
-  'monetization-client.js'
+  'monetization-client.js',
+  'privacy-options.js'
 ]);
