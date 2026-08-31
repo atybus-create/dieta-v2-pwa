@@ -30,7 +30,7 @@
             android:value="${adMobAppId}" />
 
         <activity
-            android:name=".ReminderAwareActivity"
+            android:name=".BillingAwareActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
             android:exported="true"
             android:screenOrientation="portrait">
