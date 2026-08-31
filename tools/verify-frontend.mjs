@@ -12,9 +12,10 @@ const failures = [];
 const assert = (condition, message) => { if (!condition) failures.push(message); };
 const count = regex => (bundle.match(regex) || []).length;
 
-assert(MODULES.length === 28, `Manifest powinien zawierać 28 modułów Etapu 3, ma ${MODULES.length}`);
+assert(MODULES.length === 29, `Manifest powinien zawierać 29 modułów Etapu 3 + UMP, ma ${MODULES.length}`);
 assert(MODULES[0] === CORE_MODULE, 'Pierwszym modułem musi być rdzeń');
 assert(MODULES[1] === RUNTIME_MODULE, 'Drugim modułem musi być canonical-runtime.js');
+assert(MODULES.includes('privacy-options.js'), 'Finalny manifest nie zawiera modułu opcji prywatności UMP');
 
 const forbiddenLegacyModules = [
   'auth-login-v2.js',
@@ -126,10 +127,13 @@ const monetizationMarkers = [
   'subscriptionPlansModal',
   'AndroidMonetization',
   'ensureAiAccess',
-  'handleAfterAction'
+  'handleAfterAction',
+  '__wczPrivacyOptionsAvailability',
+  'showPrivacyOptions',
+  'Ustawienia prywatności reklam'
 ];
 for (const marker of monetizationMarkers) {
-  assert(bundle.includes(marker), `Bundle nie zawiera markera monetyzacji: ${marker}`);
+  assert(bundle.includes(marker), `Bundle nie zawiera markera monetyzacji/prywatności: ${marker}`);
 }
 
 const nativeMarkers = [
