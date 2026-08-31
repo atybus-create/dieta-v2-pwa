@@ -4,15 +4,32 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.webkit.WebView;
+
+import java.lang.reflect.Field;
 
 public class ReminderAwareActivity extends MainActivity {
     private static final int NOTIFICATION_PERMISSION_REQUEST = 702;
+    private BillingBridge billingBridge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        attachBillingBridge();
         ReminderReceiver.scheduleAll(this);
         requestNotificationPermissionIfNeeded();
+    }
+
+    private void attachBillingBridge() {
+        try {
+            Field webViewField = MainActivity.class.getDeclaredField("webView");
+            webViewField.setAccessible(true);
+            WebView webView = (WebView) webViewField.get(this);
+            if (webView == null) return;
+            billingBridge = new BillingBridge(this, webView);
+            webView.addJavascriptInterface(billingBridge, "AndroidBilling");
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -26,6 +43,12 @@ public class ReminderAwareActivity extends MainActivity {
     protected void onPause() {
         ReminderReceiver.markAppForeground(this, false);
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (billingBridge != null) billingBridge.destroy();
+        super.onDestroy();
     }
 
     private void requestNotificationPermissionIfNeeded() {
