@@ -57,10 +57,11 @@ public class MainActivity extends Activity {
     private static final int CAMERA_REQUEST = 703;
     private static final int MAX_EDGE = 1280;
 
-    // Oficjalne jednostki DEMO Google AdMob. Tylko build testowy.
-    private static final String REWARDED_TEST_ID = "ca-app-pub-3940256099942544/5224354917";
-    private static final String INTERSTITIAL_TEST_ID = "ca-app-pub-3940256099942544/1033173712";
-    private static final String NATIVE_TEST_ID = "ca-app-pub-3940256099942544/2247696110";
+    // Identyfikatory AdMob są dostarczane przez BuildConfig per buildType:
+    // debug = oficjalne testowe Google, release = produkcyjne jednostki aplikacji.
+    private static final String REWARDED_AD_ID = BuildConfig.ADMOB_REWARDED_ID;
+    private static final String INTERSTITIAL_AD_ID = BuildConfig.ADMOB_INTERSTITIAL_ID;
+    private static final String NATIVE_AD_ID = BuildConfig.ADMOB_NATIVE_ID;
 
     private WebView webView;
     private FrameLayout rootFrame;
@@ -105,7 +106,8 @@ public class MainActivity extends Activity {
         settings.setUserAgentString(
                 settings.getUserAgentString()
                         + " DietaV2Native/" + getAppVersionName()
-                        + " StandaloneBundle/4 NativeBridge/1 MonetizationTest/1"
+                        + " StandaloneBundle/4 NativeBridge/1 MonetizationTest/"
+                        + (BuildConfig.MONETIZATION_TEST_MODE ? "1" : "0")
         );
 
         // Mosty są rejestrowane przed loadUrl. Frontend nie czeka na timeout ani wstrzykiwany listener.
@@ -190,7 +192,7 @@ public class MainActivity extends Activity {
                 result.put("camera", true);
                 result.put("reminders", true);
                 result.put("monetization", true);
-                result.put("monetizationTest", true);
+                result.put("monetizationTest", BuildConfig.MONETIZATION_TEST_MODE);
                 result.put("standalone", true);
                 result.put("appVersion", getAppVersionName());
                 result.put("versionCode", getAppVersionCode());
@@ -233,7 +235,7 @@ public class MainActivity extends Activity {
             return;
         }
         rewardedLoading = true;
-        RewardedAd.load(this, REWARDED_TEST_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+        RewardedAd.load(this, REWARDED_AD_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull RewardedAd ad) {
                 rewardedLoading = false;
@@ -282,7 +284,7 @@ public class MainActivity extends Activity {
             return;
         }
         interstitialLoading = true;
-        InterstitialAd.load(this, INTERSTITIAL_TEST_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
+        InterstitialAd.load(this, INTERSTITIAL_AD_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd ad) {
                 interstitialLoading = false;
@@ -323,7 +325,7 @@ public class MainActivity extends Activity {
     }
 
     private void showNativeInternal() {
-        AdLoader loader = new AdLoader.Builder(this, NATIVE_TEST_ID)
+        AdLoader loader = new AdLoader.Builder(this, NATIVE_AD_ID)
                 .forNativeAd(nativeAd -> {
                     if (isFinishing() || isDestroyed()) {
                         nativeAd.destroy();
@@ -369,7 +371,7 @@ public class MainActivity extends Activity {
         row.addView(textColumn, textParams);
 
         TextView label = new TextView(this);
-        label.setText("REKLAMA TESTOWA");
+        label.setText(BuildConfig.MONETIZATION_TEST_MODE ? "REKLAMA TESTOWA" : "REKLAMA");
         label.setTextColor(Color.parseColor("#63DECE"));
         label.setTextSize(10);
         textColumn.addView(label);
