@@ -45,6 +45,9 @@ import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
 
 import org.json.JSONObject;
 
@@ -74,6 +77,9 @@ public class MainActivity extends Activity {
     private boolean interstitialLoading = false;
     private NativeAd currentNativeAd;
     private View nativeAdContainer;
+
+    private ConsentInformation consentInformation;
+    private boolean mobileAdsStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,10 +125,7 @@ public class MainActivity extends Activity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        MobileAds.initialize(this, initializationStatus -> {
-            preloadRewarded(false);
-            preloadInterstitial(false);
-        });
+        requestConsentAndStartAds();
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -159,6 +162,82 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void requestConsentAndStartAds() {
+        consentInformation = UserMessagingPlatform.getConsentInformation(this);
+        ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+
+        consentInformation.requestConsentInfoUpdate(
+                this,
+                params,
+                () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                        this,
+                        formError -> {
+                            if (consentInformation.canRequestAds()) {
+                                startMobileAdsOnce();
+                            }
+                            notifyPrivacyOptionsAvailability();
+                        }
+                ),
+                requestError -> {
+                    if (consentInformation.canRequestAds()) {
+                        startMobileAdsOnce();
+                    }
+                    notifyPrivacyOptionsAvailability();
+                }
+        );
+
+        // Powracający użytkownik może mieć już ważną decyzję z poprzedniej sesji.
+        if (consentInformation.canRequestAds()) {
+            startMobileAdsOnce();
+        }
+    }
+
+    private void startMobileAdsOnce() {
+        if (mobileAdsStarted) return;
+        if (consentInformation != null && !consentInformation.canRequestAds()) return;
+        mobileAdsStarted = true;
+        MobileAds.initialize(this, initializationStatus -> {
+            preloadRewarded(false);
+            preloadInterstitial(false);
+        });
+    }
+
+    private boolean canRequestAds() {
+        return consentInformation == null || consentInformation.canRequestAds();
+    }
+
+    private boolean isPrivacyOptionsRequired() {
+        return consentInformation != null
+                && consentInformation.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+    }
+
+    private void showPrivacyOptionsInternal() {
+        if (consentInformation == null || !isPrivacyOptionsRequired()) {
+            notifyPrivacyOptionsAvailability();
+            return;
+        }
+        UserMessagingPlatform.showPrivacyOptionsForm(this, formError -> {
+            if (consentInformation.canRequestAds()) {
+                startMobileAdsOnce();
+            } else {
+                rewardedAd = null;
+                interstitialAd = null;
+                removeNativeAd();
+            }
+            notifyPrivacyOptionsAvailability();
+        });
+    }
+
+    private void notifyPrivacyOptionsAvailability() {
+        if (webView == null) return;
+        boolean required = isPrivacyOptionsRequired();
+        webView.post(() -> webView.evaluateJavascript(
+                "window.__wczPrivacyOptionsAvailability&&window.__wczPrivacyOptionsAvailability(" + (required ? "true" : "false") + ");",
+                null
+        ));
+    }
+
     private String getAppVersionName() {
         try {
             PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -193,6 +272,7 @@ public class MainActivity extends Activity {
                 result.put("reminders", true);
                 result.put("monetization", true);
                 result.put("monetizationTest", BuildConfig.MONETIZATION_TEST_MODE);
+                result.put("privacyOptions", isPrivacyOptionsRequired());
                 result.put("standalone", true);
                 result.put("appVersion", getAppVersionName());
                 result.put("versionCode", getAppVersionCode());
@@ -226,9 +306,23 @@ public class MainActivity extends Activity {
         public void showIngredientNative() {
             runOnUiThread(() -> showNativeInternal());
         }
+
+        @JavascriptInterface
+        public boolean isPrivacyOptionsRequired() {
+            return MainActivity.this.isPrivacyOptionsRequired();
+        }
+
+        @JavascriptInterface
+        public void showPrivacyOptions() {
+            runOnUiThread(MainActivity.this::showPrivacyOptionsInternal);
+        }
     }
 
     private void preloadRewarded(boolean showAfterLoad) {
+        if (!canRequestAds()) {
+            if (showAfterLoad) notifyAdResult("rewarded", false);
+            return;
+        }
         if (rewardedLoading) return;
         if (rewardedAd != null) {
             if (showAfterLoad) showRewardedInternal();
@@ -253,6 +347,10 @@ public class MainActivity extends Activity {
     }
 
     private void showRewardedInternal() {
+        if (!canRequestAds()) {
+            notifyAdResult("rewarded", false);
+            return;
+        }
         if (rewardedAd == null) {
             preloadRewarded(true);
             return;
@@ -278,6 +376,10 @@ public class MainActivity extends Activity {
     }
 
     private void preloadInterstitial(boolean showAfterLoad) {
+        if (!canRequestAds()) {
+            if (showAfterLoad) notifyAdResult("interstitial", false);
+            return;
+        }
         if (interstitialLoading) return;
         if (interstitialAd != null) {
             if (showAfterLoad) showInterstitialInternal();
@@ -302,6 +404,10 @@ public class MainActivity extends Activity {
     }
 
     private void showInterstitialInternal() {
+        if (!canRequestAds()) {
+            notifyAdResult("interstitial", false);
+            return;
+        }
         if (interstitialAd == null) {
             preloadInterstitial(true);
             return;
@@ -325,6 +431,10 @@ public class MainActivity extends Activity {
     }
 
     private void showNativeInternal() {
+        if (!canRequestAds()) {
+            notifyAdResult("native", false);
+            return;
+        }
         AdLoader loader = new AdLoader.Builder(this, NATIVE_AD_ID)
                 .forNativeAd(nativeAd -> {
                     if (isFinishing() || isDestroyed()) {
