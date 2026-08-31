@@ -81,14 +81,15 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Build debug APK and AAB
-        run: gradle -p android-app assembleDebug bundleDebug --no-daemon
+      - name: Build debug APK/AAB and unsigned release AAB
+        run: gradle -p android-app assembleDebug bundleDebug bundleRelease --no-daemon
 
       - name: Prepare artifacts
         run: |
           cp android-app/app/build/outputs/apk/debug/app-debug.apk "${ARTIFACT_BASENAME}.apk"
           cp android-app/app/build/outputs/bundle/debug/app-debug.aab "${ARTIFACT_BASENAME}.aab"
-          sha256sum "${ARTIFACT_BASENAME}.apk" "${ARTIFACT_BASENAME}.aab" > SHA256SUMS.txt
+          cp android-app/app/build/outputs/bundle/release/app-release.aab "${ARTIFACT_BASENAME}-release-unsigned.aab"
+          sha256sum "${ARTIFACT_BASENAME}.apk" "${ARTIFACT_BASENAME}.aab" "${ARTIFACT_BASENAME}-release-unsigned.aab" > SHA256SUMS.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -97,11 +98,18 @@ jobs:
           path: ${{ env.ARTIFACT_BASENAME }}.apk
           if-no-files-found: error
 
-      - name: Upload AAB
+      - name: Upload debug AAB
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_BASENAME }}-AAB
           path: ${{ env.ARTIFACT_BASENAME }}.aab
+          if-no-files-found: error
+
+      - name: Upload unsigned release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-release-unsigned-AAB
+          path: ${{ env.ARTIFACT_BASENAME }}-release-unsigned.aab
           if-no-files-found: error
 
       - name: Upload checksums
