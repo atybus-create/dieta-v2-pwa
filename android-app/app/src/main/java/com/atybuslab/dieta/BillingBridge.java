@@ -195,29 +195,37 @@ public final class BillingBridge implements PurchasesUpdatedListener {
             return;
         }
 
-        BillingFlowParams.ProductDetailsParams productParams =
+        BillingFlowParams.ProductDetailsParams.Builder productParamsBuilder =
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                         .setProductDetails(details)
-                        .setOfferToken(offer.getOfferToken())
-                        .build();
+                        .setOfferToken(offer.getOfferToken());
 
-        BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(Collections.singletonList(productParams));
+        BillingFlowParams.Builder flowBuilder = BillingFlowParams.newBuilder();
 
         if (current != null && !currentProductId.isEmpty()) {
             int replacementMode = PRODUCT_VIP.equals(productId)
-                    ? BillingFlowParams.ReplacementMode.CHARGE_PRORATED_PRICE
-                    : BillingFlowParams.ReplacementMode.DEFERRED;
+                    ? BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
+                    : BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams.ReplacementMode.DEFERRED;
+
+            productParamsBuilder.setSubscriptionProductReplacementParams(
+                    BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams.newBuilder()
+                            .setOldProductId(currentProductId)
+                            .setReplacementMode(replacementMode)
+                            .build()
+            );
 
             flowBuilder.setSubscriptionUpdateParams(
                     BillingFlowParams.SubscriptionUpdateParams.newBuilder()
                             .setOldPurchaseToken(current.getPurchaseToken())
-                            .setSubscriptionReplacementMode(replacementMode)
                             .build()
             );
         }
 
-        BillingResult result = billingClient.launchBillingFlow(activity, flowBuilder.build());
+        BillingFlowParams flowParams = flowBuilder
+                .setProductDetailsParamsList(Collections.singletonList(productParamsBuilder.build()))
+                .build();
+
+        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
         if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
             emitError("PURCHASE_FLOW_FAILED", result.getDebugMessage());
         }
