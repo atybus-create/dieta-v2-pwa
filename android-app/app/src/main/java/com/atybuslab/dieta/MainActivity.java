@@ -1,8 +1,12 @@
 package com.atybuslab.dieta;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -39,6 +43,8 @@ import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+
+import java.util.List;
 
 public class MainActivity extends Activity {
     private static final String LOCAL_APP_URL = "https://appassets.androidplatform.net/assets/www/index.html";
@@ -90,7 +96,7 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.5 StandaloneBundle/3 MonetizationTest/1");
+        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.9 StandaloneBundle/3 MonetizationTest/1");
 
         webView.addJavascriptInterface(new MonetizationBridge(), "AndroidMonetization");
 
@@ -418,17 +424,28 @@ public class MainActivity extends Activity {
         cameraOutputUri = createCameraOutputUri();
 
         if (cameraOutputUri == null || cameraIntent.resolveActivity(getPackageManager()) == null) {
-            if (fileCallback != null) {
-                fileCallback.onReceiveValue(null);
-                fileCallback = null;
-            }
-            cameraOutputUri = null;
+            finishFileChooser(null);
             return;
         }
 
+        final int grantFlags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
-        cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST);
+        cameraIntent.setClipData(ClipData.newRawUri("meal-photo", cameraOutputUri));
+        cameraIntent.addFlags(grantFlags);
+
+        List<ResolveInfo> cameraApps = getPackageManager().queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        for (ResolveInfo info : cameraApps) {
+            if (info.activityInfo != null && info.activityInfo.packageName != null) {
+                grantUriPermission(info.activityInfo.packageName, cameraOutputUri, grantFlags);
+            }
+        }
+
+        try {
+            startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST);
+        } catch (Exception e) {
+            deleteCameraOutputIfPresent();
+            finishFileChooser(null);
+        }
     }
 
     private Uri createCameraOutputUri() {
@@ -443,6 +460,38 @@ public class MainActivity extends Activity {
         }
     }
 
+    private boolean hasUsableContent(Uri uri) {
+        if (uri == null) return false;
+        try (AssetFileDescriptor descriptor = getContentResolver().openAssetFileDescriptor(uri, "r")) {
+            if (descriptor == null) return false;
+            long length = descriptor.getLength();
+            if (length > 0) return true;
+        } catch (Exception ignored) {
+        }
+
+        try (java.io.InputStream stream = getContentResolver().openInputStream(uri)) {
+            return stream != null && stream.read() != -1;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private void deleteCameraOutputIfPresent() {
+        if (cameraOutputUri == null) return;
+        try {
+            getContentResolver().delete(cameraOutputUri, null, null);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void finishFileChooser(Uri[] result) {
+        if (fileCallback != null) {
+            fileCallback.onReceiveValue(result);
+            fileCallback = null;
+        }
+        cameraOutputUri = null;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -451,14 +500,30 @@ public class MainActivity extends Activity {
             return;
         }
 
-        Uri[] result = null;
-        if (resultCode == RESULT_OK && cameraOutputUri != null) {
-            result = new Uri[]{cameraOutputUri};
+        final int grantFlags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
+        Uri returnedUri = data != null ? data.getData() : null;
+        Uri usableUri = null;
+
+        if (resultCode == RESULT_OK) {
+            if (hasUsableContent(cameraOutputUri)) {
+                usableUri = cameraOutputUri;
+            } else if (hasUsableContent(returnedUri)) {
+                usableUri = returnedUri;
+            }
         }
 
-        fileCallback.onReceiveValue(result);
-        fileCallback = null;
-        cameraOutputUri = null;
+        if (usableUri == null) {
+            deleteCameraOutputIfPresent();
+        }
+
+        if (cameraOutputUri != null) {
+            try {
+                revokeUriPermission(cameraOutputUri, grantFlags);
+            } catch (Exception ignored) {
+            }
+        }
+
+        finishFileChooser(usableUri == null ? null : new Uri[]{usableUri});
     }
 
     @Override
