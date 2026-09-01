@@ -74,6 +74,7 @@ public class MainActivity extends Activity {
     private RewardedAd rewardedAd;
     private InterstitialAd interstitialAd;
     private boolean rewardedLoading = false;
+    private boolean rewardedShowPending = false;
     private boolean interstitialLoading = false;
     private NativeAd currentNativeAd;
     private View nativeAdContainer;
@@ -222,6 +223,7 @@ public class MainActivity extends Activity {
                 startMobileAdsOnce();
             } else {
                 rewardedAd = null;
+                rewardedShowPending = false;
                 interstitialAd = null;
                 removeNativeAd();
             }
@@ -320,42 +322,63 @@ public class MainActivity extends Activity {
 
     private void preloadRewarded(boolean showAfterLoad) {
         if (!canRequestAds()) {
-            if (showAfterLoad) notifyAdResult("rewarded", false);
+            if (showAfterLoad || rewardedShowPending) {
+                rewardedShowPending = false;
+                notifyAdResult("rewarded", false);
+            }
             return;
         }
-        if (rewardedLoading) return;
+        if (rewardedLoading) {
+            if (showAfterLoad) rewardedShowPending = true;
+            return;
+        }
         if (rewardedAd != null) {
-            if (showAfterLoad) showRewardedInternal();
+            if (showAfterLoad || rewardedShowPending) {
+                rewardedShowPending = false;
+                showRewardedInternal();
+            }
             return;
         }
+        rewardedShowPending = rewardedShowPending || showAfterLoad;
         rewardedLoading = true;
         RewardedAd.load(this, REWARDED_AD_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull RewardedAd ad) {
                 rewardedLoading = false;
                 rewardedAd = ad;
-                if (showAfterLoad) showRewardedInternal();
+                if (rewardedShowPending) {
+                    rewardedShowPending = false;
+                    showRewardedInternal();
+                }
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError error) {
                 rewardedLoading = false;
                 rewardedAd = null;
-                if (showAfterLoad) notifyAdResult("rewarded", false);
+                boolean shouldNotify = rewardedShowPending;
+                rewardedShowPending = false;
+                if (shouldNotify) notifyAdResult("rewarded", false);
             }
         });
     }
 
     private void showRewardedInternal() {
         if (!canRequestAds()) {
+            rewardedShowPending = false;
             notifyAdResult("rewarded", false);
             return;
         }
         if (rewardedAd == null) {
-            preloadRewarded(true);
+            if (rewardedLoading) {
+                rewardedShowPending = true;
+            } else {
+                preloadRewarded(true);
+            }
             return;
         }
 
+        rewardedShowPending = false;
         RewardedAd ad = rewardedAd;
         rewardedAd = null;
         final boolean[] rewardEarned = {false};
