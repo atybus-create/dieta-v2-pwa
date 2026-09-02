@@ -10,8 +10,8 @@ android {
         applicationId 'com.atybuslab.dieta'
         minSdk 29
         targetSdk 36
-        versionCode 17
-        versionName '1.1.14'
+        versionCode 18
+        versionName '1.1.15'
     }
 
     buildFeatures {
@@ -20,8 +20,6 @@ android {
 
     buildTypes {
         debug {
-            // Debug korzysta wyłącznie z oficjalnych testowych identyfikatorów Google.
-            // Dzięki temu lokalne testy nie generują sztucznego ruchu na koncie AdMob.
             manifestPlaceholders = [adMobAppId: 'ca-app-pub-3940256099942544~3347511713']
             buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-3940256099942544/5224354917\"'
             buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-3940256099942544/1033173712\"'
@@ -30,7 +28,6 @@ android {
         }
 
         release {
-            // Produkcyjne identyfikatory AdMob dla aplikacji Wiem co Żre-m z AI.
             manifestPlaceholders = [adMobAppId: 'ca-app-pub-1844071625771837~9023628216']
             buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-1844071625771837/4892706319\"'
             buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-1844071625771837/9155490158\"'
