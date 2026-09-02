@@ -15,7 +15,7 @@
     </queries>
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/monster_launcher"
         android:roundIcon="@drawable/monster_launcher"
         android:label="Wiem co Żre-m z AI"
@@ -23,8 +23,6 @@
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:usesCleartextTraffic="false">
 
-        <!-- App ID jest wybierany per buildType w app/build.gradle:
-             debug = oficjalny testowy Google, release = produkcyjny AdMob. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${adMobAppId}" />
