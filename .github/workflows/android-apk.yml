@@ -2,7 +2,7 @@ name: Build Android APK and AAB
 
 on:
   push:
-    branches: [main, 'release/google-play-rc', 'test/1.1.17-device-regression-2026-09-06']
+    branches: [main, 'release/google-play-rc', 'test/1.1.18-full-regression-2026-09-06']
     paths:
       - '*.js'
       - '*.css'
@@ -41,6 +41,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Apply monetization reliability fix
+        run: node tools/apply-monetization-reliability-fix.mjs
+
       - name: Build deterministic frontend bundle
         run: |
           node tools/build-frontend.mjs
@@ -53,10 +56,11 @@ jobs:
       - name: Apply camera lifecycle regression fix
         run: node tools/apply-camera-lifecycle-fix.mjs
 
-      - name: Verify Android architecture
+      - name: Verify Android and monetization architecture
         run: |
           node tools/verify-android.mjs
           node tools/verify-camera-lifecycle.mjs
+          node tools/verify-monetization-reliability.mjs
 
       - name: Resolve Android version
         shell: bash
@@ -67,7 +71,7 @@ jobs:
           test -n "$VERSION_CODE"
           echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
-          echo "ARTIFACT_BASENAME=Wiem-co-Zre-m-z-AI-v${VERSION_NAME}-device-regression-api36" >> "$GITHUB_ENV"
+          echo "ARTIFACT_BASENAME=Wiem-co-Zre-m-z-AI-v${VERSION_NAME}-full-regression-api36" >> "$GITHUB_ENV"
 
       - name: Set up JDK
         uses: actions/setup-java@v5
