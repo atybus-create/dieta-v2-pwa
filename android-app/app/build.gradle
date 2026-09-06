@@ -10,8 +10,8 @@ android {
         applicationId 'com.atybuslab.dieta'
         minSdk 29
         targetSdk 36
-        versionCode 20
-        versionName '1.1.17'
+        versionCode 21
+        versionName '1.1.18'
     }
 
     buildFeatures {
