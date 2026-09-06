@@ -56,11 +56,12 @@ jobs:
       - name: Apply camera lifecycle regression fix
         run: node tools/apply-camera-lifecycle-fix.mjs
 
-      - name: Verify Android and monetization architecture
+      - name: Verify full application regression contract
         run: |
           node tools/verify-android.mjs
           node tools/verify-camera-lifecycle.mjs
           node tools/verify-monetization-reliability.mjs
+          node tools/verify-full-regression.mjs
 
       - name: Resolve Android version
         shell: bash
