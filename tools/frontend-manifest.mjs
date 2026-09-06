@@ -1,4 +1,4 @@
-export const BUILD_ID = '20260831-google-play-rc-admob-ump';
+export const BUILD_ID = '20260906-google-play-1.1.16-production-copy';
 
 export const OLD_BACKEND_BASE = 'https://n8n-pi.taild8d05f.ts.net';
 export const BACKEND_BASE = 'https://api.atybuslab.com';
