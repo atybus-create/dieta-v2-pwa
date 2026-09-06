@@ -10,12 +10,30 @@ android {
         applicationId 'com.atybuslab.dieta'
         minSdk 29
         targetSdk 36
-        versionCode 9
-        versionName '1.1.6'
+        versionCode 20
+        versionName '1.1.17'
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders = [adMobAppId: 'ca-app-pub-3940256099942544~3347511713']
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-3940256099942544/5224354917\"'
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-3940256099942544/1033173712\"'
+            buildConfigField 'String', 'ADMOB_NATIVE_ID', '\"ca-app-pub-3940256099942544/2247696110\"'
+            buildConfigField 'boolean', 'MONETIZATION_TEST_MODE', 'true'
+        }
+
         release {
+            manifestPlaceholders = [adMobAppId: 'ca-app-pub-1844071625771837~9023628216']
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', '\"ca-app-pub-1844071625771837/4892706319\"'
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-1844071625771837/9155490158\"'
+            buildConfigField 'String', 'ADMOB_NATIVE_ID', '\"ca-app-pub-1844071625771837/6257864076\"'
+            buildConfigField 'boolean', 'MONETIZATION_TEST_MODE', 'false'
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -25,4 +43,6 @@ android {
 dependencies {
     implementation 'androidx.webkit:webkit:1.12.1'
     implementation 'com.google.android.gms:play-services-ads:25.4.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    implementation 'com.android.billingclient:billing:9.1.0'
 }

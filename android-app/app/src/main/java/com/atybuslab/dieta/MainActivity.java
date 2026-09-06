@@ -1,20 +1,26 @@
 package com.atybuslab.dieta;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,28 +45,42 @@ import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
+
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.List;
 
 public class MainActivity extends Activity {
     private static final String LOCAL_APP_URL = "https://appassets.androidplatform.net/assets/www/index.html";
-    private static final int FILE_CHOOSER_REQUEST = 501;
+    private static final int CAMERA_REQUEST = 703;
+    private static final int MAX_EDGE = 1280;
 
-    // Oficjalne jednostki DEMO Google AdMob. Tylko build testowy.
-    private static final String REWARDED_TEST_ID = "ca-app-pub-3940256099942544/5224354917";
-    private static final String INTERSTITIAL_TEST_ID = "ca-app-pub-3940256099942544/1033173712";
-    private static final String NATIVE_TEST_ID = "ca-app-pub-3940256099942544/2247696110";
+    // Identyfikatory AdMob są dostarczane przez BuildConfig per buildType:
+    // debug = oficjalne testowe Google, release = produkcyjne jednostki aplikacji.
+    private static final String REWARDED_AD_ID = BuildConfig.ADMOB_REWARDED_ID;
+    private static final String INTERSTITIAL_AD_ID = BuildConfig.ADMOB_INTERSTITIAL_ID;
+    private static final String NATIVE_AD_ID = BuildConfig.ADMOB_NATIVE_ID;
 
     private WebView webView;
     private FrameLayout rootFrame;
-    private ValueCallback<Uri[]> fileCallback;
-    private Uri cameraOutputUri;
     private WebViewAssetLoader assetLoader;
+    private Uri cameraOutputUri;
 
     private RewardedAd rewardedAd;
     private InterstitialAd interstitialAd;
     private boolean rewardedLoading = false;
+    private boolean rewardedShowPending = false;
     private boolean interstitialLoading = false;
     private NativeAd currentNativeAd;
     private View nativeAdContainer;
+
+    private ConsentInformation consentInformation;
+    private boolean mobileAdsStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,42 +110,30 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " DietaV2Native/1.1.5 StandaloneBundle/3 MonetizationTest/1");
+        settings.setUserAgentString(
+                settings.getUserAgentString()
+                        + " DietaV2Native/" + getAppVersionName()
+                        + " StandaloneBundle/4 NativeBridge/1 MonetizationTest/"
+                        + (BuildConfig.MONETIZATION_TEST_MODE ? "1" : "0")
+        );
 
+        // Mosty są rejestrowane przed loadUrl. Frontend nie czeka na timeout ani wstrzykiwany listener.
+        webView.addJavascriptInterface(new AppBridge(), "AndroidApp");
+        webView.addJavascriptInterface(new CameraBridge(), "AndroidCamera");
         webView.addJavascriptInterface(new MonetizationBridge(), "AndroidMonetization");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        MobileAds.initialize(this, initializationStatus -> {
-            preloadRewarded(false);
-            preloadInterstitial(false);
-        });
+        requestConsentAndStartAds();
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view, android.webkit.WebResourceRequest request) {
+            public android.webkit.WebResourceResponse shouldInterceptRequest(
+                    WebView view,
+                    android.webkit.WebResourceRequest request) {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                view.evaluateJavascript("window.__AI_MONITOR_NATIVE__=true;window.__AI_MONITOR_STANDALONE_BUNDLE__=true;window.__WCZAI_MONETIZATION_TEST__=true;", null);
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                view.evaluateJavascript(
-                        "window.__AI_MONITOR_NATIVE__=true;" +
-                        "window.__AI_MONITOR_STANDALONE_BUNDLE__=true;" +
-                        "window.__WCZAI_MONETIZATION_TEST__=true;" +
-                        "document.documentElement.classList.add('native-wrapper');" +
-                        "['installFirstBtn','installHint','installBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});",
-                        null
-                );
             }
 
             @Override
@@ -148,27 +156,140 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(
-                    WebView webView,
-                    ValueCallback<Uri[]> filePathCallback,
-                    FileChooserParams fileChooserParams) {
-
-                if (fileCallback != null) {
-                    fileCallback.onReceiveValue(null);
-                }
-
-                fileCallback = filePathCallback;
-                launchCamera();
-                return true;
-            }
-        });
-
         if (savedInstanceState == null) {
             webView.loadUrl(LOCAL_APP_URL);
         } else {
             webView.restoreState(savedInstanceState);
+        }
+    }
+
+    private void requestConsentAndStartAds() {
+        consentInformation = UserMessagingPlatform.getConsentInformation(this);
+        ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+
+        consentInformation.requestConsentInfoUpdate(
+                this,
+                params,
+                () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                        this,
+                        formError -> {
+                            if (consentInformation.canRequestAds()) {
+                                startMobileAdsOnce();
+                            }
+                            notifyPrivacyOptionsAvailability();
+                        }
+                ),
+                requestError -> {
+                    if (consentInformation.canRequestAds()) {
+                        startMobileAdsOnce();
+                    }
+                    notifyPrivacyOptionsAvailability();
+                }
+        );
+
+        // Powracający użytkownik może mieć już ważną decyzję z poprzedniej sesji.
+        if (consentInformation.canRequestAds()) {
+            startMobileAdsOnce();
+        }
+    }
+
+    private void startMobileAdsOnce() {
+        if (mobileAdsStarted) return;
+        if (consentInformation != null && !consentInformation.canRequestAds()) return;
+        mobileAdsStarted = true;
+        MobileAds.initialize(this, initializationStatus -> {
+            preloadRewarded(false);
+            preloadInterstitial(false);
+        });
+    }
+
+    private boolean canRequestAds() {
+        return consentInformation == null || consentInformation.canRequestAds();
+    }
+
+    private boolean isPrivacyOptionsRequired() {
+        return consentInformation != null
+                && consentInformation.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+    }
+
+    private void showPrivacyOptionsInternal() {
+        if (consentInformation == null || !isPrivacyOptionsRequired()) {
+            notifyPrivacyOptionsAvailability();
+            return;
+        }
+        UserMessagingPlatform.showPrivacyOptionsForm(this, formError -> {
+            if (consentInformation.canRequestAds()) {
+                startMobileAdsOnce();
+            } else {
+                rewardedAd = null;
+                rewardedShowPending = false;
+                interstitialAd = null;
+                removeNativeAd();
+            }
+            notifyPrivacyOptionsAvailability();
+        });
+    }
+
+    private void notifyPrivacyOptionsAvailability() {
+        if (webView == null) return;
+        boolean required = isPrivacyOptionsRequired();
+        webView.post(() -> webView.evaluateJavascript(
+                "window.__wczPrivacyOptionsAvailability&&window.__wczPrivacyOptionsAvailability(" + (required ? "true" : "false") + ");",
+                null
+        ));
+    }
+
+    private String getAppVersionName() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return info.versionName == null || info.versionName.trim().isEmpty()
+                    ? "unknown"
+                    : info.versionName;
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
+    private long getAppVersionCode() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                return info.getLongVersionCode();
+            }
+            return info.versionCode;
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private final class AppBridge {
+        @JavascriptInterface
+        public String getCapabilities() {
+            try {
+                JSONObject result = new JSONObject();
+                result.put("platform", "android");
+                result.put("native", true);
+                result.put("camera", true);
+                result.put("reminders", true);
+                result.put("monetization", true);
+                result.put("monetizationTest", BuildConfig.MONETIZATION_TEST_MODE);
+                result.put("privacyOptions", isPrivacyOptionsRequired());
+                result.put("standalone", true);
+                result.put("appVersion", getAppVersionName());
+                result.put("versionCode", getAppVersionCode());
+                result.put("sdk", Build.VERSION.SDK_INT);
+                return result.toString();
+            } catch (Exception e) {
+                return "{\"platform\":\"android\",\"native\":true}";
+            }
+        }
+    }
+
+    private final class CameraBridge {
+        @JavascriptInterface
+        public void captureMealPhoto() {
+            runOnUiThread(MainActivity.this::launchCamera);
         }
     }
 
@@ -187,38 +308,77 @@ public class MainActivity extends Activity {
         public void showIngredientNative() {
             runOnUiThread(() -> showNativeInternal());
         }
+
+        @JavascriptInterface
+        public boolean isPrivacyOptionsRequired() {
+            return MainActivity.this.isPrivacyOptionsRequired();
+        }
+
+        @JavascriptInterface
+        public void showPrivacyOptions() {
+            runOnUiThread(MainActivity.this::showPrivacyOptionsInternal);
+        }
     }
 
     private void preloadRewarded(boolean showAfterLoad) {
-        if (rewardedLoading) return;
-        if (rewardedAd != null) {
-            if (showAfterLoad) showRewardedInternal();
+        if (!canRequestAds()) {
+            if (showAfterLoad || rewardedShowPending) {
+                rewardedShowPending = false;
+                notifyAdResult("rewarded", false);
+            }
             return;
         }
+        if (rewardedLoading) {
+            if (showAfterLoad) rewardedShowPending = true;
+            return;
+        }
+        if (rewardedAd != null) {
+            if (showAfterLoad || rewardedShowPending) {
+                rewardedShowPending = false;
+                showRewardedInternal();
+            }
+            return;
+        }
+        rewardedShowPending = rewardedShowPending || showAfterLoad;
         rewardedLoading = true;
-        RewardedAd.load(this, REWARDED_TEST_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+        RewardedAd.load(this, REWARDED_AD_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull RewardedAd ad) {
                 rewardedLoading = false;
                 rewardedAd = ad;
-                if (showAfterLoad) showRewardedInternal();
+                if (rewardedShowPending) {
+                    rewardedShowPending = false;
+                    showRewardedInternal();
+                }
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError error) {
                 rewardedLoading = false;
                 rewardedAd = null;
-                if (showAfterLoad) notifyAdResult("rewarded", false);
+                boolean shouldNotify = rewardedShowPending;
+                rewardedShowPending = false;
+                if (shouldNotify) notifyAdResult("rewarded", false);
             }
         });
     }
 
     private void showRewardedInternal() {
+        if (!canRequestAds()) {
+            rewardedShowPending = false;
+            notifyAdResult("rewarded", false);
+            return;
+        }
         if (rewardedAd == null) {
-            preloadRewarded(true);
+            if (rewardedLoading) {
+                rewardedShowPending = true;
+            } else {
+                preloadRewarded(true);
+            }
             return;
         }
 
+        rewardedShowPending = false;
         RewardedAd ad = rewardedAd;
         rewardedAd = null;
         final boolean[] rewardEarned = {false};
@@ -239,13 +399,17 @@ public class MainActivity extends Activity {
     }
 
     private void preloadInterstitial(boolean showAfterLoad) {
+        if (!canRequestAds()) {
+            if (showAfterLoad) notifyAdResult("interstitial", false);
+            return;
+        }
         if (interstitialLoading) return;
         if (interstitialAd != null) {
             if (showAfterLoad) showInterstitialInternal();
             return;
         }
         interstitialLoading = true;
-        InterstitialAd.load(this, INTERSTITIAL_TEST_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
+        InterstitialAd.load(this, INTERSTITIAL_AD_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd ad) {
                 interstitialLoading = false;
@@ -263,6 +427,10 @@ public class MainActivity extends Activity {
     }
 
     private void showInterstitialInternal() {
+        if (!canRequestAds()) {
+            notifyAdResult("interstitial", false);
+            return;
+        }
         if (interstitialAd == null) {
             preloadInterstitial(true);
             return;
@@ -286,7 +454,11 @@ public class MainActivity extends Activity {
     }
 
     private void showNativeInternal() {
-        AdLoader loader = new AdLoader.Builder(this, NATIVE_TEST_ID)
+        if (!canRequestAds()) {
+            notifyAdResult("native", false);
+            return;
+        }
+        AdLoader loader = new AdLoader.Builder(this, NATIVE_AD_ID)
                 .forNativeAd(nativeAd -> {
                     if (isFinishing() || isDestroyed()) {
                         nativeAd.destroy();
@@ -332,7 +504,7 @@ public class MainActivity extends Activity {
         row.addView(textColumn, textParams);
 
         TextView label = new TextView(this);
-        label.setText("REKLAMA TESTOWA");
+        label.setText(BuildConfig.MONETIZATION_TEST_MODE ? "REKLAMA TESTOWA" : "REKLAMA");
         label.setTextColor(Color.parseColor("#63DECE"));
         label.setTextSize(10);
         textColumn.addView(label);
@@ -414,27 +586,47 @@ public class MainActivity extends Activity {
     }
 
     private void launchCamera() {
+        if (cameraOutputUri != null) {
+            emitCameraEvent("camera_error", "CAMERA_BUSY", "Aparat jest już uruchomiony.", 0);
+            return;
+        }
+
+        emitCameraEvent("camera_open", null, null, 0);
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraOutputUri = createCameraOutputUri();
 
         if (cameraOutputUri == null || cameraIntent.resolveActivity(getPackageManager()) == null) {
-            if (fileCallback != null) {
-                fileCallback.onReceiveValue(null);
-                fileCallback = null;
-            }
-            cameraOutputUri = null;
+            emitCameraEvent("camera_error", "CAMERA_UNAVAILABLE", "Nie udało się uruchomić aparatu.", 0);
+            deleteCameraOutputIfPresent();
+            clearCameraUri();
             return;
         }
 
+        final int grantFlags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
-        cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST);
+        cameraIntent.setClipData(ClipData.newRawUri("meal-photo", cameraOutputUri));
+        cameraIntent.addFlags(grantFlags);
+
+        List<ResolveInfo> cameraApps = getPackageManager().queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        for (ResolveInfo info : cameraApps) {
+            if (info.activityInfo != null && info.activityInfo.packageName != null) {
+                grantUriPermission(info.activityInfo.packageName, cameraOutputUri, grantFlags);
+            }
+        }
+
+        try {
+            startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        } catch (Exception e) {
+            emitCameraEvent("camera_error", "CAMERA_LAUNCH_FAILED", "Nie udało się uruchomić aparatu.", 0);
+            deleteCameraOutputIfPresent();
+            revokeAndClearCameraUri();
+        }
     }
 
     private Uri createCameraOutputUri() {
         try {
             ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, "meal_" + System.currentTimeMillis() + ".jpg");
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, "meal_native_" + System.currentTimeMillis() + ".jpg");
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/WiemCoZremAI");
             return getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -446,18 +638,137 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != CAMERA_REQUEST) return;
 
-        if (requestCode != FILE_CHOOSER_REQUEST || fileCallback == null) {
+        emitCameraEvent("camera_result", resultCode == RESULT_OK ? "OK" : "CANCELLED", null, 0);
+
+        Uri returnedUri = data != null ? data.getData() : null;
+        Uri usableUri = resultCode == RESULT_OK && hasContent(cameraOutputUri)
+                ? cameraOutputUri
+                : (resultCode == RESULT_OK && hasContent(returnedUri) ? returnedUri : null);
+
+        if (usableUri == null) {
+            boolean cancelled = resultCode == RESULT_CANCELED;
+            emitCameraEvent(
+                    cancelled ? "camera_cancelled" : "camera_error",
+                    cancelled ? "USER_CANCELLED" : "NO_IMAGE",
+                    cancelled ? "Anulowano robienie zdjęcia." : "Aparat nie zwrócił poprawnego zdjęcia.",
+                    0
+            );
+            deleteCameraOutputIfPresent();
+            revokeAndClearCameraUri();
             return;
         }
 
-        Uri[] result = null;
-        if (resultCode == RESULT_OK && cameraOutputUri != null) {
-            result = new Uri[]{cameraOutputUri};
+        final Uri photoUri = usableUri;
+        new Thread(() -> {
+            try {
+                byte[] jpeg = normalizeCameraPhoto(photoUri);
+                if (jpeg == null || jpeg.length == 0) throw new IllegalStateException("Puste zdjęcie");
+                emitCameraEvent("photo_prepared", "OK", null, jpeg.length);
+                String base64 = Base64.encodeToString(jpeg, Base64.NO_WRAP);
+                deliverPhotoToJavascript(base64);
+            } catch (Exception e) {
+                emitCameraEvent("camera_error", "PHOTO_PREPARE_FAILED", "Nie udało się przygotować zdjęcia do analizy.", 0);
+            } finally {
+                revokeAndClearCameraUri();
+            }
+        }, "meal-camera-normalize").start();
+    }
+
+    private boolean hasContent(Uri uri) {
+        if (uri == null) return false;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            return stream != null && stream.read() != -1;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private byte[] normalizeCameraPhoto(Uri uri) throws Exception {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            BitmapFactory.decodeStream(stream, null, bounds);
+        }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            throw new IllegalStateException("Nieprawidłowe wymiary zdjęcia");
         }
 
-        fileCallback.onReceiveValue(result);
-        fileCallback = null;
+        int sample = 1;
+        while (Math.max(bounds.outWidth / sample, bounds.outHeight / sample) > MAX_EDGE * 2) {
+            sample *= 2;
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = Math.max(1, sample);
+        Bitmap bitmap;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            bitmap = BitmapFactory.decodeStream(stream, null, options);
+        }
+        if (bitmap == null) throw new IllegalStateException("Nie udało się odczytać zdjęcia");
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        float scale = Math.min(1f, (float) MAX_EDGE / Math.max(width, height));
+        Bitmap output = bitmap;
+        if (scale < 1f) {
+            int targetWidth = Math.max(1, Math.round(width * scale));
+            int targetHeight = Math.max(1, Math.round(height * scale));
+            output = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+        }
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        boolean ok = output.compress(Bitmap.CompressFormat.JPEG, 80, bytes);
+        if (output != bitmap) output.recycle();
+        bitmap.recycle();
+        if (!ok) throw new IllegalStateException("Nie udało się zakodować zdjęcia");
+        return bytes.toByteArray();
+    }
+
+    private void deliverPhotoToJavascript(String base64) {
+        if (webView == null) return;
+        String js = "window.__wczNativeCameraPhoto&&window.__wczNativeCameraPhoto("
+                + JSONObject.quote(base64) + ","
+                + JSONObject.quote("image/jpeg") + ","
+                + JSONObject.quote("meal.jpg") + ");";
+        webView.post(() -> webView.evaluateJavascript(js, null));
+    }
+
+    private void emitCameraEvent(String stage, String code, String message, int bytes) {
+        if (webView == null) return;
+        try {
+            JSONObject event = new JSONObject();
+            event.put("stage", stage);
+            if (code != null) event.put("code", code);
+            if (message != null) event.put("message", message);
+            if (bytes > 0) event.put("bytes", bytes);
+            String js = "window.__wczNativeCameraEvent&&window.__wczNativeCameraEvent(" + event.toString() + ");";
+            webView.post(() -> webView.evaluateJavascript(js, null));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void deleteCameraOutputIfPresent() {
+        if (cameraOutputUri == null) return;
+        try {
+            getContentResolver().delete(cameraOutputUri, null, null);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void clearCameraUri() {
+        cameraOutputUri = null;
+    }
+
+    private void revokeAndClearCameraUri() {
+        if (cameraOutputUri != null) {
+            int flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION;
+            try {
+                revokeUriPermission(cameraOutputUri, flags);
+            } catch (Exception ignored) {
+            }
+        }
         cameraOutputUri = null;
     }
 
@@ -470,6 +781,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         removeNativeAd();
+        if (cameraOutputUri != null) {
+            deleteCameraOutputIfPresent();
+            revokeAndClearCameraUri();
+        }
         if (webView != null) webView.destroy();
         super.onDestroy();
     }

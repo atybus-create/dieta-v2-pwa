@@ -2,13 +2,26 @@ name: Build Android APK and AAB
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'release/google-play-rc', 'test/1.1.17-device-regression-2026-09-06']
     paths:
+      - '*.js'
+      - '*.css'
+      - '*.html'
+      - '*.webmanifest'
+      - 'assets/**'
+      - 'tools/**'
       - 'android-app/**'
       - '.github/workflows/android-apk.yml'
+      - 'RELEASE_BASELINE_GOOGLE_PLAY_RC.md'
   pull_request:
     branches: [main]
     paths:
+      - '*.js'
+      - '*.css'
+      - '*.html'
+      - '*.webmanifest'
+      - 'assets/**'
+      - 'tools/**'
       - 'android-app/**'
       - '.github/workflows/android-apk.yml'
   workflow_dispatch:
@@ -22,6 +35,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build deterministic frontend bundle
+        run: |
+          node tools/build-frontend.mjs
+          node --check app.bundle.js
+          node tools/prepare-web.mjs
+          node tools/verify-frontend.mjs
+          node tools/sync-android-web.mjs
+          diff -qr dist android-app/app/src/main/assets/www
+
+      - name: Apply camera lifecycle regression fix
+        run: node tools/apply-camera-lifecycle-fix.mjs
+
+      - name: Verify Android architecture
+        run: |
+          node tools/verify-android.mjs
+          node tools/verify-camera-lifecycle.mjs
+
+      - name: Resolve Android version
+        shell: bash
+        run: |
+          VERSION_NAME="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" android-app/app/build.gradle | head -n 1)"
+          VERSION_CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\([0-9][0-9]*\).*/\1/p' android-app/app/build.gradle | head -n 1)"
+          test -n "$VERSION_NAME"
+          test -n "$VERSION_CODE"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "ARTIFACT_BASENAME=Wiem-co-Zre-m-z-AI-v${VERSION_NAME}-device-regression-api36" >> "$GITHUB_ENV"
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -40,31 +86,39 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Build debug APK and AAB
-        run: gradle -p android-app assembleDebug bundleDebug --no-daemon
+      - name: Build debug APK/AAB and unsigned release AAB
+        run: gradle -p android-app assembleDebug bundleDebug bundleRelease --no-daemon
 
       - name: Prepare artifacts
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.apk
-          cp android-app/app/build/outputs/bundle/debug/app-debug.aab Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.aab
-          sha256sum Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.apk Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.aab > SHA256SUMS.txt
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk "${ARTIFACT_BASENAME}.apk"
+          cp android-app/app/build/outputs/bundle/debug/app-debug.aab "${ARTIFACT_BASENAME}.aab"
+          cp android-app/app/build/outputs/bundle/release/app-release.aab "${ARTIFACT_BASENAME}-release-unsigned.aab"
+          sha256sum "${ARTIFACT_BASENAME}.apk" "${ARTIFACT_BASENAME}.aab" "${ARTIFACT_BASENAME}-release-unsigned.aab" > SHA256SUMS.txt
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36-APK
-          path: Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.apk
+          name: ${{ env.ARTIFACT_BASENAME }}-APK
+          path: ${{ env.ARTIFACT_BASENAME }}.apk
           if-no-files-found: error
 
-      - name: Upload AAB
+      - name: Upload debug AAB
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36-AAB
-          path: Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36.aab
+          name: ${{ env.ARTIFACT_BASENAME }}-AAB
+          path: ${{ env.ARTIFACT_BASENAME }}.aab
+          if-no-files-found: error
+
+      - name: Upload unsigned release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-release-unsigned-AAB
+          path: ${{ env.ARTIFACT_BASENAME }}-release-unsigned.aab
           if-no-files-found: error
 
       - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
-          name: Wiem-co-Zre-m-z-AI-v1.1.6-final-test-api36-checksums
+          name: ${{ env.ARTIFACT_BASENAME }}-checksums
           path: SHA256SUMS.txt
